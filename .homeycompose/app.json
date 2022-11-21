@@ -1,0 +1,56 @@
+{
+  "id": "name.klep.homekitty",
+  "version": "1.0.0",
+  "compatibility": ">=5.0.0",
+  "sdk": 3,
+  "brandColor": "#FE9C21",
+  "homeyCommunityTopicId": 70469,
+  "permissions": [
+    "homey:manager:api"
+  ],
+  "platforms": [
+    "local"
+  ],
+  "name": {
+    "en": "HomeKitty"
+  },
+  "description": {
+    "en": "Control your Homey devices with iOS and Siri",
+    "nl": "Bedien je Homey apparaten met iOS en Siri"
+  },
+  "tags": {
+    "en": [
+      "homekit",
+      "home",
+      "siri",
+      "iOS",
+      "iphone",
+      "ipad",
+      "homeykit",
+      "apple"
+    ]
+  },
+  "category": [
+    "tools"
+  ],
+  "images": {
+    "small": "/assets/images/small.png",
+    "large": "/assets/images/large.png",
+    "xlarge": "/assets/images/xlarge.png"
+  },
+  "author": {
+    "name": "Robert Klep",
+    "email": "robert@klep.name"
+  },
+  "bugs": {
+    "url": "https://github.com/robertklep/name.klep.homekitty/issues/"
+  },
+  "source": "https://github.com/robertklep/name.klep.homekitty/",
+  "contributing": {
+    "donate": {
+      "paypal": {
+        "username": "robertklep"
+      }
+    }
+  }
+}
