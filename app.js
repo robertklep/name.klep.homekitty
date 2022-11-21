@@ -1,9 +1,10 @@
-const { join : pathJoin }      = require('node:path');
-const { mkdir, access, rmdir } = require('node:fs/promises');
-const { chdir }                = require('node:process');
-const Homey                    = require('homey');
-const Constants                = require('./constants');
-const { HomeyAPIApp }          = require('./modules/homey-api');
+const { join : pathJoin }           = require('node:path');
+const { mkdir, access, rm : rmdir } = require('node:fs/promises');
+const { chdir }                     = require('node:process');
+const Homey                         = require('homey');
+const Constants                     = require('./constants');
+const DeviceMapper                  = require('./lib/device-mapper');
+const { HomeyAPIApp }               = require('./modules/homey-api');
 const {
   Bridge, Service, Characteristic,
   Accessory, AccessoryEventTypes, uuid } = require('./modules/hap-nodejs');
@@ -14,6 +15,7 @@ module.exports = class HomeKitty extends Homey.App {
   #api        = null;
   #bridge     = null;
   #persistDir = null;
+  #watching   = false;
 
   async onInit() {
     this.log('');
@@ -23,11 +25,23 @@ module.exports = class HomeKitty extends Homey.App {
     // create persistence directory
     await this.initializePersistence();
 
+    // perform a reset
+    if (false) {
+      await this.reset();
+      return;
+    }
+
     // initialize Homey API
     await this.initializeApi();
 
     // wait for devices to settle
     await this.settleDevices();
+
+    // configure the bridge
+    await this.configureBridge();
+
+    // map all supported devices
+    await this.mapDevices();
 
     // start the bridge
     await this.startBridge();
@@ -93,7 +107,7 @@ module.exports = class HomeKitty extends Homey.App {
     }
   }
 
-  async startBridge() {
+  async configureBridge() {
     const identifier = this.homey.settings.get(Constants.SETTINGS_BRIDGE_IDENTIFIER) || Constants.DEFAULT_BRIDGE_IDENTIFIER;
 
     this.log('setting up HomeKit bridge:');
@@ -111,21 +125,29 @@ module.exports = class HomeKitty extends Homey.App {
       callback();
     });
 
-    const { username, port, pincode } = this.getBridgeCredentials();
-    this.log(`- using bridge credentials: username=${ username} port=${ port } pincode=${ pincode }`);
+    // Store current identifier.
+    this.homey.settings.set(Constants.SETTINGS_BRIDGE_IDENTIFIER, identifier);
+  }
+
+  async startBridge() {
+    const { username, port, pincode, setupID } = this.getBridgeCredentials();
+
+    this.log(`- using bridge credentials: username=${ username} port=${ port } setupID=${ setupID } pincode=${ pincode }`);
+
     try {
       this.log(`- starting bridge:`);
       await this.#bridge.publish({
-        username: username,
-        port:     port,
-        pincode:  pincode,
+        username,
+        port,
+        setupID,
+        pincode,
         category: Accessory.Categories.BRIDGE
       });
       this.log('  - started successfully! 🥳');
       // store current credentials
-      this.homey.settings.set(Constants.SETTINGS_BRIDGE_IDENTIFIER, identifier);
       this.homey.settings.set(Constants.SETTINGS_BRIDGE_USERNAME,   username);
       this.homey.settings.set(Constants.SETTINGS_BRIDGE_PORT,       port);
+      this.homey.settings.set(Constants.SETTINGS_BRIDGE_SETUP_ID,   setupID);
       this.homey.settings.set(Constants.SETTINGS_BRIDGE_PINCODE,    pincode);
     } catch(e) {
       this.error('  - unable to start! 😭');
@@ -139,6 +161,7 @@ module.exports = class HomeKitty extends Homey.App {
     return {
       username : this.homey.settings.get(Constants.SETTINGS_BRIDGE_USERNAME) || this.generateBridgeUsername(),
       port     : this.homey.settings.get(Constants.SETTINGS_BRIDGE_PORT)     || this.generateBridgePort(),
+      setupID  : this.homey.settings.get(Constants.SETTINGS_BRIDGE_SETUP_ID) || Constants.DEFAULT_SETUP_ID,
       pincode  : this.homey.settings.get(Constants.SETTINGS_BRIDGE_PINCODE)  || Constants.DEFAULT_PIN_CODE,
     };
   }
@@ -148,8 +171,46 @@ module.exports = class HomeKitty extends Homey.App {
   }
 
   generateBridgePort() {
-    // Combination of IANA and Linux ranges: 49152 to 60999
+    // combination of IANA and Linux ranges: 49152 to 60999
     return 49152 + (0 | Math.random() * 11847);
+  }
+
+  async mapDevices() {
+    // use the app logger for the device mapper
+    DeviceMapper.setLogger(this.log.bind(this));
+
+    // get all devices and try to map them
+    // TODO: track paired devices
+    for (const [ id, device ] of Object.entries(await this.getDevices())) {
+      await this.mapDevice(device);
+    }
+
+    // TODO: listen for realtime device events
+  }
+
+  async mapDevice(device) {
+    if (! device || ! device.ready || ! device.capabilitiesObj) return;
+
+    // HK bridges can only bridge at most 150 devices (including themselves)
+    if (this.#bridge.bridgedAccessories.length >= 149) {
+      this.error('reached the HomeKit limit of how many devices can be bridged');
+    }
+
+    this.log(`[${ device.name }:${ device.id }] trying mapper`);
+    const mappedDevice = Mapper.mapDevice(device);
+    if (mappedDevice) {
+      this.log(`[${ device.name }:${ device.id }] was able to map 🥳`);
+
+      /* TODO
+      device.on('$delete', id => {
+        this.deleteDevice(device);
+      });
+      */
+
+      this.#bridge.addBridgedAccessory(mappedDevice.accessorize());
+      return;
+    }
+    this.log(`[${ device.name }:${ device.id }] unable to map 🥺`);
   }
 
   async getDevices() {
@@ -159,8 +220,11 @@ module.exports = class HomeKitty extends Homey.App {
   async reset() {
     this.log('resetting credentials');
     // reset credentials and persistence (start over)
+    // TODO: identifier should be set to a new value, otherwise it keeps getting deleted
+    this.homey.settings.unset(Constants.SETTINGS_BRIDGE_IDENTIFIER);
     this.homey.settings.unset(Constants.SETTINGS_BRIDGE_USERNAME);
     this.homey.settings.unset(Constants.SETTINGS_BRIDGE_PORT);
+    this.homey.settings.unset(Constants.SETTINGS_BRIDGE_SETUP_ID);
     this.homey.settings.unset(Constants.SETTINGS_BRIDGE_PINCODE);
     try {
       this.log('removing persistence directory:');
@@ -170,9 +234,12 @@ module.exports = class HomeKitty extends Homey.App {
       this.error('- failed 😭 ');
       this.error(e);
     }
+    // TODO: restart app
   }
 
   async realtimeUpdates() {
+    if (this.#watching) return;
+
     await this.#api.devices.connect();
 
     this.#api.devices.on('device.create', device => {
@@ -182,5 +249,7 @@ module.exports = class HomeKitty extends Homey.App {
     this.#api.devices.on('device.delete', device => {
       console.log('device deleted', device.id, device.name);
     });
+
+    this.#watching = true;
   }
 }
