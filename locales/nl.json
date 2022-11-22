@@ -1,0 +1,17 @@
+{
+
+  "tabs": {
+    "devices": "Apparaten",
+    "log": "Log"
+  },
+  "device": {
+    "add":         "Toevoegen aan HomeKit",
+    "delete":      "Verwijderen uit HomeKit",
+    "unknown":     "Onbekend",
+    "unsupported": "Niet ondersteund door HomeKitty 🥺",
+    "unavailable": "Niet beschikbaar 😬"
+  },
+  "errors" : {
+    "apirequest" : "API request mislukt 😭"
+  }
+}

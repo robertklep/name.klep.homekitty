@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>HomeKitty</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <script src="/homey.js" data-origin="settings"></script>
+    <script src="vue.min.js"></script>
+    <script src="fuse.min.js"></script>
+    <script src='homey-settings-mock.js'></script>
+    <script src='mock-setup.js'></script>
+    <script src='mock-devices.js'></script>
+    <link rel="stylesheet" href="bulma.min.css">
+    <style>
+      /* prevent FOUC */
+      [v-cloak] { display: none }
+    </style>
+  </head>
+  <body>
+    <div id='app' v-cloak>
+
+      <div class="tabs is-centered">
+        <ul>
+          <li v-bind:class="isActive('devices')">
+            <a @click="setPage('devices')" data-i18n="tabs.devices">Devices</a>
+          </li>
+          <li v-bind:class="isActive('settings')">
+            <a @click="setPage('settings')" data-i18n="tabs.settings">Settings</a>
+          </li>
+        </ul>
+      </div>
+
+      <!-- DEVICES PAGE -->
+      <div v-if="currentPage == 'devices'">
+        <input v-model='search' @keyup='onKeyUp' class='input' type='text' placeholder='Filter...'>
+        <div class='columns is-multiline is-tablet' style='margin: 0.75rem 0'>
+          <div v-for='device in filteredItems' :key='device.id' class='column is-half-tablet is-one-third-desktop'>
+            <div class='card'>
+              <div class='card-content'>
+                <div class='media'>
+                  <div class='media-left'>
+                    <figure class='image is-48x48'>
+                      <img :src="device.iconObj.url" v-if='!! device.iconObj' style="height:48px" :title="'id = ' + device.id + ', class = ' + device.class"/>
+                    </figure>
+                  </div>
+                  <div class='media-content'>
+                    <div class='title    is-4'>{{ device.name }}</div>
+                    <div class='subtitle is-6'>{{ device.zoneName }}</div>
+                  </div>
+                </div>
+              </div>
+              <div class='card-footer'>
+                <div class='card-footer-item'>
+                  <div v-if='! device.available' class='has-text-centered has-text-info' data-i18n='device.unavailable'>
+                    Unavailable 😬
+                  </div>
+                  <div v-else-if='! device.homekitty.supported' class='has-text-centered has-text-info' data-i18n='device.unsupported'>
+                    Device unsupported by HomeKitty 🥺
+                  </div>
+                  <div v-else>
+                    <a v-if="device.homekitty.exposed"   @click="unexposeDevice(device)" class="button is-danger"  data-i18n="device.delete">Delete from HomeKit</a>
+                    <a v-else                            @click="exposeDevice(device)"   class="button is-success" data-i18n="device.add">Add to HomeKit</a>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- LOG PAGE -->
+      <div class="columns" v-if="currentPage == 'log'">
+        <div class="column is-12 box">
+          <table class="table is-striped">
+            <tr v-for="log in reverseLog">
+              <td>{{log.time}}</td>
+              <td>
+                <span v-if="log.type == 'info' || log.type == undefined" class="tag is-info is-rounded is-small">Info</span>
+                <span v-if="log.type == 'success'" class="tag is-success is-rounded is-small">Success</span>
+                <span v-if="log.type == 'error'" class="tag is-danger is-rounded is-small">Error</span>
+              </td>
+              <td>
+                {{ log.string }}
+              </td>
+            </tr>
+          </table>
+        </div>
+      </div>
+
+      <!-- SETTINGS PAGE -->
+      <div class='columns is-mobile' v-if="currentPage == 'settings'">
+        <div class='column is-half-tablet is-offset-one-quarter-tablet is-one-third-desktop is-offset-one-third-desktop'>
+          <div class='box has-text-centered'>
+            <p>
+              If you want to run multiple instances of Homeykit in your
+              network, for instance if you have two (or more) Homey's, each
+              instance should have a unique bridge identifier.
+            </p>
+            <p>
+              <b>
+              After changing this setting, restart the Homeykit app for the
+              change to take effect.
+              </b>
+            </p>
+            <p>
+              <b style='color:red'>Change this only if you have a reason to do
+                so, otherwise you may lose your current HomeKit
+                configuration.</b>
+            </p>
+            <div class='is-mobile' style='margin-top: 0.75rem'>
+              <div class='field is-horizontal'>
+                <div class='field-label is-normal'>
+                  <label class='label'>Bridge Identifier:</label>
+                </div>
+                <div class='field-body'>
+                  <div class='field'>
+                    <p class='control'>
+                      <input class='input' type='string' v-model='bridgeIdentifier'>
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class='box has-text-centered'>
+            <p>
+              If you run into the problem that your Homekit configuration (rooms, automations) gets lost after a reboot,
+              you can configure a "settle time" here. By default, this is 2 minutes, which may not be enough for Homey's
+              with lots of devices and/or apps installed.
+            </p>
+            <div class='is-mobile' style='margin-top: 0.75rem'>
+              <div class='field is-horizontal'>
+                <div class='field-label is-normal'>
+                  <label class='label'>Settle Time (seconds):</label>
+                </div>
+                <div class='field-body'>
+                  <div class='field'>
+                    <p class='control'>
+                      <input class='input' type='number' v-model='settleTime'>
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class='box has-text-centered'>
+            <p>
+              If you have problems trying to add Homey to HomeKit, for instance, if HomeKit can't find the "Homey" accessory,
+              you can try and clear the HomeKit storage. Make sure to restart the app afterwards!
+            </p>
+            <p style='margin-top: 0.75rem'>
+              <a @click="clearStorage()" class='button is-danger' data-i18n="app.clearStorage">Clear HomeKit storage and start over.</a>
+            </p>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+
+  <script>
+    function onHomeyReady(Homey) {
+      console.log('ready');
+      Homey.ready();
+      new Vue({
+        el   : '#app',
+        data : {
+          devices:          {},
+          pairedDevices:    {},
+          search:           '',
+          currentPage:      'devices',
+          settleTime:       120,
+          bridgeIdentifier: 'Homey',
+          log:              []
+        },
+        methods: {
+          onKeyUp(ev) {
+            if (ev.key === 'Escape') {
+              this.search = '';
+            }
+          },
+          getSetting(name) {
+            return new Promise((resolve, reject) => {
+              Homey.get(name, (err, result) => {
+                err ? reject(err) : resolve(result);
+              });
+            });
+          },
+          setSetting(name, value) {
+            return new Promise((resolve, reject) => {
+              Homey.set(name, value, err => {
+                err ? reject(err) : resolve(value);
+              });
+            });
+          },
+          request(method, endpoint, data) {
+            return new Promise((resolve, reject) => {
+              Homey.api(method, endpoint, data, (err, result) => {
+                if (err) {
+                  console.error(err);
+                  Homey.alert(Homey.__('errors.apirequest') + ': ' + err.message);
+                  reject(err);
+                } else {
+                  resolve(result);
+                }
+              });
+            });
+          },
+          async getDevices() {
+            let devices  = await this.request('GET', '/devices');
+            this.devices = Object.values(devices);
+          },
+          async getSettings() {
+            this.settleTime       = await this.getSetting('settleTime') || 120;
+            this.bridgeIdentifier = await this.getSetting('bridgeIdentifier') || 'Homey';
+          },
+          async getLog() {
+            this.log = []; // await this.request('GET', '/log');
+          },
+          async getPairedDevices() {
+            this.pairedDevices = await this.getSetting('pairedDevices');
+          },
+          setPage(page) {
+            this.currentPage = page;
+          },
+          isActive(page) {
+            if (this.currentPage == page) {
+              return 'is-active';
+            } else {
+              return;
+            }
+          },
+          async exposeDevice(device) {
+            console.log('Exposing device', device.id, device.name, device.class)
+            try {
+              await this.request('PUT', '/devices/' + device.id, device);
+              this.devices.find(d => d.id === device.id).homekitty.exposed = true;
+            } catch(e) {}
+            //this.pairedDevices[device.id] = true;
+            //await this.updatePairedDevices();
+          },
+          async unexposeDevice(device) {
+            console.log('Unexposing device', device.id, device.name, device.class)
+            try {
+              await this.request('DELETE', '/devices/' + device.id, device);
+              this.devices.find(d => d.id === device.id).homekitty.exposed = false;
+            } catch(e) {}
+            //console.log(device.name + ' removed from Homekit');
+            //this.pairedDevices[device.id] = false;
+            //await this.updatePairedDevices();
+          },
+          async clearStorage() {
+            Homey.confirm('Are you sure!?', 'warning', async (err, response) => {
+              if (response === true) {
+                await this.request('GET', '/clear-storage', { value : response });
+                Homey.alert('Storage is cleared, please restart the Homeykit app!');
+              }
+            });
+          },
+          async updatePairedDevices() {
+            return await this.setSetting('pairedDevices', this.pairedDevices);
+          },
+          canAdd(device) {
+            return this.pairedDevices[device.id] === false;
+          },
+          canRemove(device) {
+            return this.pairedDevices[device.id] === true;
+          }
+        },
+        async mounted() {
+          await this.getPairedDevices();
+          await this.getDevices();
+          await this.getSettings();
+          /*
+          await this.getLog();
+          Homey.on('log.new', res => {
+            this.log = res;
+          });
+          */
+          Homey.on('settings.set', async (key) => {
+            if (key === 'pairedDevices') {
+              await this.getDevices();
+              this.pairedDevices = await this.getSetting('pairedDevices');
+            }
+          });
+        },
+        computed: {
+          filteredItems() {
+            var options = {
+              keys:               [ 'name', 'zoneName', 'class' ],
+              shouldSort:         true,
+              findAllMatches:     true,
+              threshold:          0.6,
+              location:           0,
+              distance:           100,
+              maxPatternLength:   32,
+              minMatchCharLength: 2
+            };
+            var fuse = new Fuse(this.devices, options);
+            if (this.search.length > 2) {
+              return fuse.search(this.search);
+            } else {
+              return this.devices;
+            }
+          },
+          reverseLog() {
+            return this.log.slice().reverse();
+          }
+        },
+        watch: {
+          async settleTime(value) {
+            await this.setSetting('settleTime', value);
+          },
+          async bridgeIdentifier(value) {
+            await this.setSetting('bridgeIdentifier', value);
+          }
+        }
+      })
+    }
+  </script>
+</body>
+</html>

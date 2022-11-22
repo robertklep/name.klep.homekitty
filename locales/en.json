@@ -1,1 +1,16 @@
-{}
+{
+  "tabs": {
+    "devices": "Devices",
+    "log": "Log"
+  },
+  "device": {
+    "add": "Add to HomeKit",
+    "delete": "Delete from HomeKit",
+    "unknown": "Unknown",
+    "unsupported" : "Unsupported by HomeKitty 🥺",
+    "unavailable" : "Unavailable 😬"
+  },
+  "errors" : {
+    "apirequest" : "API request failed 😭"
+  }
+}

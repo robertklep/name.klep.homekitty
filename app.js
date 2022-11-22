@@ -11,16 +11,31 @@ const {
 
 const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
 
+function defer() {
+  const deferred = {};
+  const promise  = new Promise((resolve, reject) => {
+    deferred.resolve = resolve;
+    deferred.reject  = reject;
+  });
+  deferred.promise = promise;
+  return deferred;
+}
+
 module.exports = class HomeKitty extends Homey.App {
-  #api        = null;
-  #bridge     = null;
-  #persistDir = null;
-  #watching   = false;
+  #api           = null;
+  #bridge        = null;
+  #persistDir    = null;
+  #watching      = false;
+  #devicesMapped = defer();
+  #exposeMap     = {};
 
   async onInit() {
     this.log('');
     this.log('🐈🏠 ✧･ﾟ: *✧･ﾟ Welcome to HomeKitty ﾟ･✧*:･ﾟ✧ 🏠🐈');
     this.log('');
+
+    // initialize API
+    await this.initializeAPI();
 
     // create persistence directory
     await this.initializePersistence();
@@ -28,7 +43,6 @@ module.exports = class HomeKitty extends Homey.App {
     // perform a reset
     if (false) {
       await this.reset();
-      return;
     }
 
     // initialize Homey API
@@ -45,6 +59,12 @@ module.exports = class HomeKitty extends Homey.App {
 
     // start the bridge
     await this.startBridge();
+  }
+
+  async initializeAPI() {
+    for (const [ name, fn ] of Object.entries(this.api)) {
+      this.api[name] = fn.bind(this);
+    }
   }
 
   async initializePersistence() {
@@ -175,31 +195,59 @@ module.exports = class HomeKitty extends Homey.App {
     return 49152 + (0 | Math.random() * 11847);
   }
 
+  async storeExposeMap() {
+    this.homey.settings.set(Constants.SETTINGS_EXPOSE_MAP, this.#exposeMap);
+  }
+
+  async loadExposeMap() {
+    this.#exposeMap = this.homey.settings.get(Constants.SETTINGS_EXPOSE_MAP) || {};
+  }
+
   async mapDevices() {
+    this.loadExposeMap();
+
     // use the app logger for the device mapper
     DeviceMapper.setLogger(this.log.bind(this));
 
     // get all devices and try to map them
-    // TODO: track paired devices
     for (const [ id, device ] of Object.entries(await this.getDevices())) {
-      await this.mapDevice(device);
+      await this.addDeviceToHomeKit(device);
     }
 
+    // update exposure map
+    this.storeExposeMap();
+
+    // done mapping devices
+    this.#devicesMapped.resolve();
     // TODO: listen for realtime device events
   }
 
-  async mapDevice(device) {
-    if (! device || ! device.ready || ! device.capabilitiesObj) return;
+  // XXX: make sure a device isn't already mapped
+  async addDeviceToHomeKit(device) {
+    const prefix = `[${ device?.name || "NO NAME" }:${ device?.id || "NO_ID" }]`;
+
+    // XXX: how about `device.available`?
+    if (! device || ! device.ready || ! device.capabilitiesObj) {
+      this.error(`${ prefix } device not ready or doesn't have capabilitiesObj`);
+      return false;
+    }
 
     // HK bridges can only bridge at most 150 devices (including themselves)
     if (this.#bridge.bridgedAccessories.length >= 149) {
-      this.error('reached the HomeKit limit of how many devices can be bridged');
+      this.error(`${ prefix } reached the HomeKit limit of how many devices can be bridged`);
+      return false;
+    }
+
+    // if we don't know the exposure state of the device (i.e.
+    // it's new to us), default to exposing it to HK
+    if (! (device.id in this.#exposeMap)) {
+      this.#exposeMap[device.id] = true;
     }
 
     this.log(`[${ device.name }:${ device.id }] trying mapper`);
     const mappedDevice = Mapper.mapDevice(device);
     if (mappedDevice) {
-      this.log(`[${ device.name }:${ device.id }] was able to map 🥳`);
+      this.log(`${ prefix } was able to map 🥳`);
 
       /* TODO
       device.on('$delete', id => {
@@ -207,14 +255,49 @@ module.exports = class HomeKitty extends Homey.App {
       });
       */
 
-      this.#bridge.addBridgedAccessory(mappedDevice.accessorize());
-      return;
+      // expose it to HK unless the user doesn't want to
+      if (this.getExposeState(device.id) !== false) {
+        this.#bridge.addBridgedAccessory(mappedDevice.accessorize());
+      }
+      return true;
     }
-    this.log(`[${ device.name }:${ device.id }] unable to map 🥺`);
+    this.#exposeMap[device.id] = false;
+    this.log(`${ prefix } unable to map 🥺`);
+    return false;
+  }
+
+  async deleteDeviceFromHomeKit(device) {
+    let accessory = this.#bridge.bridgedAccessories.find(r => r.UUID === device.id);
+    if (! accessory) return false;
+    this.log(`removing device with id ${ device.id } from HomeKit:`);
+    try {
+      this.#bridge.removeBridgedAccessory(accessory);
+      this.log(`- success 🥳`);
+      return true;
+    } catch(e) {
+      this.log(`- failed 🥺`);
+      this.error(e);
+      return false;
+    }
+  }
+
+  getExposeState(id) {
+    return this.#exposeMap[id];
+  }
+
+  async setExposeState(id, state, defer = true) {
+    this.#exposeMap[id] = state;
+    if (! defer) {
+      await this.storeExposeMap();
+    }
   }
 
   async getDevices() {
     return this.#api.devices.getDevices();
+  }
+
+  async getDeviceById(id) {
+    return this.#api.devices.getDevice({ id });
   }
 
   async reset() {
@@ -251,5 +334,48 @@ module.exports = class HomeKitty extends Homey.App {
     });
 
     this.#watching = true;
+  }
+
+  api = {
+    async getDevices() {
+      // wait for devices to be mapped
+      await this.#devicesMapped;
+
+      // return the list of devices
+      return Object.values(await this.getDevices()).map(device => {
+        // pass the device state (supported/exposed) to the API
+        device.homekitty = {
+          supported: Mapper.canMapDevice(device),
+          exposed:   this.#exposeMap[device.id] !== false,
+        }
+        return device;
+      });
+    },
+
+    async exposeDevice(id) {
+      const device = await this.getDeviceById(id);
+
+      if (! await this.addDeviceToHomeKit(device)) {
+        throw Error('unable to add device');
+      }
+
+      // update exposure state
+      await this.setExposeState(id, true, false);
+
+      // done
+      return 'ok';
+    },
+
+    async unexposeDevice(id) {
+      if (! await this.deleteDeviceFromHomeKit({ id })) {
+        throw Error('unable to delete device');
+      }
+
+      // update exposure state
+      await this.setExposeState(id, false, false);
+
+      // done
+      return 'ok';
+    }
   }
 }
