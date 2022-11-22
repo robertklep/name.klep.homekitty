@@ -1,6 +1,7 @@
 const { join : pathJoin }           = require('node:path');
 const { mkdir, access, rm : rmdir } = require('node:fs/promises');
 const { chdir }                     = require('node:process');
+const debounce                      = require('debounce');
 const Homey                         = require('homey');
 const Constants                     = require('./constants');
 const DeviceMapper                  = require('./lib/device-mapper');
@@ -56,6 +57,9 @@ module.exports = class HomeKitty extends Homey.App {
 
     // map all supported devices
     await this.mapDevices();
+
+    // watch for device updates
+    await this.watchDevices();
 
     // start the bridge
     await this.startBridge();
@@ -219,7 +223,6 @@ module.exports = class HomeKitty extends Homey.App {
 
     // done mapping devices
     this.#devicesMapped.resolve();
-    // TODO: listen for realtime device events
   }
 
   // XXX: make sure a device isn't already mapped
@@ -249,12 +252,6 @@ module.exports = class HomeKitty extends Homey.App {
     if (mappedDevice) {
       this.log(`${ prefix } was able to map 🥳`);
 
-      /* TODO
-      device.on('$delete', id => {
-        this.deleteDevice(device);
-      });
-      */
-
       // expose it to HK unless the user doesn't want to
       if (this.getExposeState(device.id) !== false) {
         this.#bridge.addBridgedAccessory(mappedDevice.accessorize());
@@ -266,8 +263,20 @@ module.exports = class HomeKitty extends Homey.App {
     return false;
   }
 
+  async deleteDevice(device) {
+    // delete device from HomeKit
+    await this.deleteDeviceFromHomeKit(device);
+    // delete device from the exposure list
+    delete this.#exposeMap[device.id];
+    await this.storeExposeMap();
+  }
+
+  getAccessoryById(id) {
+    return this.#bridge.bridgedAccessories.find(r => r.UUID === id);
+  }
+
   async deleteDeviceFromHomeKit(device) {
-    let accessory = this.#bridge.bridgedAccessories.find(r => r.UUID === device.id);
+    let accessory = this.getAccessoryById(device.id);
     if (! accessory) return false;
     this.log(`removing device with id ${ device.id } from HomeKit:`);
     try {
@@ -309,6 +318,7 @@ module.exports = class HomeKitty extends Homey.App {
     this.homey.settings.unset(Constants.SETTINGS_BRIDGE_PORT);
     this.homey.settings.unset(Constants.SETTINGS_BRIDGE_SETUP_ID);
     this.homey.settings.unset(Constants.SETTINGS_BRIDGE_PINCODE);
+    this.homey.settings.unset(Constants.SETTINGS_EXPOSE_MAP);
     try {
       this.log('removing persistence directory:');
       await rmdir(this.#persistDir, { recursive : true });
@@ -318,22 +328,40 @@ module.exports = class HomeKitty extends Homey.App {
       this.error(e);
     }
     // TODO: restart app
+    process.exit(1);
   }
 
-  async realtimeUpdates() {
+  async watchDevices() {
     if (this.#watching) return;
+    this.#watching = true;
 
     await this.#api.devices.connect();
 
     this.#api.devices.on('device.create', device => {
-      console.log('device created', device.id, device.name);
+      this.log('device created event:', device.name, device.id);
     });
 
-    this.#api.devices.on('device.delete', device => {
-      console.log('device deleted', device.id, device.name);
+    this.#api.devices.on('device.delete', async (device) => { // really just `{ id }`
+      this.log('device deleted event:', device.id);
+      await this.deleteDevice(device);
     });
 
-    this.#watching = true;
+    // debounce update events because they may get emitted
+    // multiple times during device creation
+    this.#api.devices.on('device.update', debounce(async (device) => {
+      this.log('device updated event:', device.name, device.id);
+
+      // check if it's already exposed through HomeKit
+      let accessory = this.getAccessoryById(device.id);
+      if (accessory) {
+        this.log('- already exposed via HomeKit');
+        // TODO: remove-then-add?
+        return;
+      } else {
+        this.log('- not yet exposed via HomeKit, will try to add it.');
+        await this.addDeviceToHomeKit(device);
+      }
+    }, 500));
   }
 
   api = {
