@@ -6,8 +6,8 @@ module.exports = {
   DEFAULT_BRIDGE_IDENTIFIER:    'HomeKitty',
   DEFAULT_USERNAME:             'FA:CE:13:37:CA:75',
   DEFAULT_PORT:                 31337,
-  DEFAULT_SETUP_ID:             '1337',
-  DEFAULT_PIN_CODE:             '133-71-337', // XXX: needs this formatting
+  DEFAULT_SETUP_ID:             'CATS',
+  DEFAULT_PIN_CODE:             '133-78-055', // XXX: needs this formatting
   // settings keys
   SETTINGS_BRIDGE_IDENTIFIER:   'Bridge.Identifier',
   SETTINGS_BRIDGE_USERNAME:     'Bridge.Username',
