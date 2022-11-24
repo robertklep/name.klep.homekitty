@@ -19,7 +19,7 @@ if (! window.Homey) {
     addRoutes(routes) {
       this.routes = Object.assign([], routes);
       for (const route of this.routes) {
-        route.pathRegex = new RegExp('^' + route.path.replace(/(:)(\w+)/gi, '(?<$2>\\w+)') + '$');
+        route.pathRegex = new RegExp('^' + route.path.replace(/(:)(\w+)/gi, '(?<$2>\\S+)') + '$');
       }
     }
 

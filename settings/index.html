@@ -11,17 +11,32 @@
     <script src='mock-devices.js'></script>
     <link rel="stylesheet" href="bulma.min.css">
     <style>
+      html > body.homekitty {
+        margin:  0 !important;
+        padding: 0 !important;
+      }
+
+      #homekitty .tabs > ul:first-child {
+        margin-left: 0 !important;
+      }
+
+      #homekitty input.input {
+        padding: 0 0.5em !important;
+      }
+
       /* prevent FOUC */
       [v-cloak] { display: none }
-      
+
       /* override Homey styles */
-      .is-danger, .is-success { color : #fff  !important }
-      .is-danger  { background-color: #ff3860 !important }
-      .is-success { background-color: #23d160 !important }
+      .button.is-danger,
+      .button.is-success  { color : #fff  !important }
+      .button.is-danger  { background-color: #ff3860 !important }
+      .button.is-success { background-color: #23d160 !important }
+      .button.is-static  { background-color: #f5f5f5 !important }
     </style>
   </head>
-  <body>
-    <div id='app' v-cloak class='box' @vue:mounted='mounted'>
+  <body class='homekitty'>
+    <div id='homekitty' v-cloak clas-s='box' @vue:mounted='mounted'>
 
       <div class="tabs is-centered is-boxed">
         <ul>
@@ -37,11 +52,11 @@
       </div>
 
       <!-- DEVICES PAGE -->
-      <div v-if="currentPage == 'devices'">
+      <div class='p-2' v-if="currentPage == 'devices'">
         <div class='block'>
-          <input v-model='search' @keyup='onKeyUp' class='input is-normal' type='text' placeholder='Filter...'>
+          <input v-model='search' @keyup='onKeyUp' class='input is-link is-small' type='text' placeholder='Filter...'>
         </div>
-        <div class='columns is-multiline is-tablet' style='margin: 0.75rem 0'>
+        <div class='columns is-multiline is-tablet'>
           <div v-for='device in filteredItems' :key='device.id' class='column is-half-tablet is-one-third-desktop'>
             <div class='card'>
               <div class='card-content'>
@@ -52,22 +67,22 @@
                     </figure>
                   </div>
                   <div class='media-content'>
-                    <div class='title    is-4'>{{ device.name }}</div>
-                    <div class='subtitle is-6'>{{ device.zoneName }}</div>
+                    <p class='title    is-size-4 is-size-5-mobile'>{{ device.name }}</p>
+                    <p class='subtitle is-size-6 is-size-6-mobile'>{{ device.zoneName || "&nbsp;" }}</p>
                   </div>
                 </div>
               </div>
               <div class='card-footer'>
                 <div class='card-footer-item'>
-                  <div v-if='! device.available' class='has-text-centered has-text-info' data-i18n='device.unavailable'>
-                    Unavailable 😬
+                  <div v-if='! device.available'>
+                    <button class='button is-white is-static is-size-6 is-size-7-mobile' data-i18n='device.unavailable'>Unavailable 😬</button>
                   </div>
-                  <div v-else-if='! device.homekitty.supported' class='has-text-centered has-text-info' data-i18n='device.unsupported'>
-                    Device unsupported by HomeKitty 🥺
+                  <div v-else-if='! device.homekitty.supported'>
+                    <button class='button is-static is-size-6 is-size-7-mobile' data-i18n='device.unsupported'>Device unsupported by HomeKitty 🥺</button>
                   </div>
                   <div v-else>
-                    <a v-if="device.homekitty.exposed"   @click="unexposeDevice(device)" class="button is-danger"  data-i18n="device.delete">Delete from HomeKit</a>
-                    <a v-else                            @click="exposeDevice(device)"   class="button is-success" data-i18n="device.add">Add to HomeKit</a>
+                    <a v-if="device.homekitty.exposed"   @click="unexposeDevice(device)" class="button is-danger  is-size-6 is-size-7-mobile"  data-i18n="device.delete">Delete from HomeKit</a>
+                    <a v-else                            @click="exposeDevice(device)"   class="button is-success is-size-6 is-size-7-mobile" data-i18n="device.add">Add to HomeKit</a>
                   </div>
                 </div>
               </div>
@@ -77,9 +92,12 @@
       </div>
 
       <!-- SETTINGS PAGE -->
-      <div class='columns is-mobile' v-if="currentPage == 'settings'">
-        <div class='column is-half-tablet is-offset-one-quarter-tablet is-one-third-desktop is-offset-one-third-desktop'>
-          <div class='box has-text-centered'>
+      <div class='p-2' v-if="currentPage == 'settings'">
+        <article class='message is-link is-normal'>
+          <div class='message-header'>
+            <p class='has-text-centered'>Change Bridge Identifier</p>
+          </div>
+          <div class='message-body'>
             <p>
               If you want to run multiple instances of Homeykit in your
               network, for instance if you have two (or more) Homey's, each
@@ -111,28 +129,12 @@
               </div>
             </div>
           </div>
-          <div class='box has-text-centered'>
-            <p>
-              If you run into the problem that your Homekit configuration (rooms, automations) gets lost after a reboot,
-              you can configure a "settle time" here. By default, this is 2 minutes, which may not be enough for Homey's
-              with lots of devices and/or apps installed.
-            </p>
-            <div class='is-mobile' style='margin-top: 0.75rem'>
-              <div class='field is-horizontal'>
-                <div class='field-label is-normal'>
-                  <label class='label'>Settle Time (seconds):</label>
-                </div>
-                <div class='field-body'>
-                  <div class='field'>
-                    <p class='control'>
-                      <input class='input' type='number' v-model='settleTime'>
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
+        </article>
+        <article class='message is-danger is-normal'>
+          <div class='message-header'>
+            <p>!!! HomeKitty Reset !!!</p>
           </div>
-          <div class='box has-text-centered'>
+          <div class='message-body'>
             <p>
               If you have problems trying to add Homey to HomeKit, for instance, if HomeKit can't find the "Homey" accessory,
               you can try and clear the HomeKit storage. Make sure to restart the app afterwards!
@@ -141,7 +143,7 @@
               <a @click="clearStorage()" class='button is-danger' data-i18n="app.clearStorage">Clear HomeKit storage and start over.</a>
             </p>
           </div>
-        </div>
+        </article>
       </div>
 
     </div>
@@ -258,7 +260,7 @@
             return this.devices;
           }
         }
-      }).mount('#app');
+      }).mount('#homekitty');
     }
   </script>
 </body>
