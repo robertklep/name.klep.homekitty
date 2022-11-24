@@ -7,6 +7,7 @@ if (! window.Homey) {
       this._nextView      = null;
       this._prevView      = null;
       this.viewOptions    = {};
+      this.viewStores     = {};
       this.emitHandlers   = {};
       this.onHandlers     = {};
       this.loadingOverlay = null;
@@ -37,6 +38,10 @@ if (! window.Homey) {
       this.viewOptions[viewId] = opts;
     }
 
+    setViewStore(viewId, store) {
+      this.viewStores[viewId] = store;
+    }
+
     // Regular API.
     async emit(event, ...data) {
       let handler = this.emitHandlers[event];
@@ -46,9 +51,10 @@ if (! window.Homey) {
       return undefined;
     }
 
-    on(event, cb) {
+    async on(event, fn) {
       let handler = this.onHandlers[event];
-      handler && handler(event, cb);
+      if (! handler) return;
+      return await handler(event, fn);
     }
 
     setTitle(title) {
@@ -133,6 +139,17 @@ if (! window.Homey) {
       if (! this.loadingOverlay) return;
       document.body.removeChild(this.loadingOverlay);
       this.loadingOverlay = null;
+    }
+
+    async getViewStoreValue(viewId, key) {
+      return this.viewStores[viewId]?.[key];
+    }
+
+    async setViewStoreValue(viewId, key, value) {
+      if (! this.viewStores[viewId]) {
+        this.viewStores[viewId] = {};
+      }
+      this.viewStores[viewId][key] = value;
     }
   })();
 }

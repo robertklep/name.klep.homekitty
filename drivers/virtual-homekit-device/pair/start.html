@@ -21,7 +21,7 @@
     <div id='app' v-cloak class='box' @vue:mounted='mounted'>
 
       <!-- #1: pick a HomeKit service for the new device -->
-      <article class='message is-info'>
+      <article class='message is-info is-size-4 is-size-7-mobile'>
         <div class='message-header'>
           Pick a HomeKit service for your new device:
         </div>
@@ -36,18 +36,18 @@
       </article>
 
       <!-- #2: select a name for the new device -->
-      <article class='message is-info' v-if='device.service'>
+      <article class='message is-info is-size-4 is-size-7-mobile' v-if='device.service'>
         <div class='message-header'>
           Select a name for your new device:
         </div>
         <div class='message-body'>
-          <input class='input' type='text' v-model.trim='device.name'>
+          <input class='input is-size-4 is-size-7-mobile' type='text' v-model.trim='device.name'>
         </div>
       </article>
 
       <!-- #3: create the device -->
-      <div class='container' v-if='device.service && device.name'>
-        <button class="button is-success is-light is-pulled-right" @click='createDevice'>Add Device!</button>
+      <div class='container is-size-4 is-size-7-mobile' v-if='device.service && device.name'>
+        <button class="button is-success is-light is-pulled-right is-size-4 is-size-7-mobile" @click='createDevice'>Add Device!</button>
         <div class='is-clearfix'></div>
       </div>
 
