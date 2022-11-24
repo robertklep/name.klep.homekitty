@@ -13,15 +13,22 @@
     <style>
       /* prevent FOUC */
       [v-cloak] { display: none }
+      
+      /* override Homey styles */
+      .is-danger, .is-success { color : #fff  !important }
+      .is-danger  { background-color: #ff3860 !important }
+      .is-success { background-color: #23d160 !important }
     </style>
   </head>
   <body>
-    <div id='app' v-cloak>
+    <div id='app' v-cloak class='box'>
 
-      <div class="tabs is-centered">
+      <div class="tabs is-centered is-boxed">
         <ul>
           <li v-bind:class="isActive('devices')">
-            <a @click="setPage('devices')" data-i18n="tabs.devices">Devices</a>
+            <a @click="setPage('devices')" data-i18n="tabs.devices">
+              Devices
+            </a>
           </li>
           <li v-bind:class="isActive('settings')">
             <a @click="setPage('settings')" data-i18n="tabs.settings">Settings</a>
@@ -31,7 +38,9 @@
 
       <!-- DEVICES PAGE -->
       <div v-if="currentPage == 'devices'">
-        <input v-model='search' @keyup='onKeyUp' class='input' type='text' placeholder='Filter...'>
+        <div class='block'>
+          <input v-model='search' @keyup='onKeyUp' class='input is-normal' type='text' placeholder='Filter...'>
+        </div>
         <div class='columns is-multiline is-tablet' style='margin: 0.75rem 0'>
           <div v-for='device in filteredItems' :key='device.id' class='column is-half-tablet is-one-third-desktop'>
             <div class='card'>
@@ -166,7 +175,6 @@
         el   : '#app',
         data : {
           devices:          {},
-          pairedDevices:    {},
           search:           '',
           currentPage:      'devices',
           settleTime:       120,
@@ -209,6 +217,7 @@
           async getDevices() {
             let devices  = await this.request('GET', '/devices');
             this.devices = Object.values(devices);
+            console.log(`loaded ${ this.devices.length } devices`);
           },
           async getSettings() {
             this.settleTime       = await this.getSetting('settleTime') || 120;
@@ -216,9 +225,6 @@
           },
           async getLog() {
             this.log = []; // await this.request('GET', '/log');
-          },
-          async getPairedDevices() {
-            this.pairedDevices = await this.getSetting('pairedDevices');
           },
           setPage(page) {
             this.currentPage = page;
@@ -231,23 +237,18 @@
             }
           },
           async exposeDevice(device) {
-            console.log('Exposing device', device.id, device.name, device.class)
+            console.log('exposing device', device.id, device.name, device.class)
             try {
               await this.request('PUT', '/devices/' + device.id, device);
               this.devices.find(d => d.id === device.id).homekitty.exposed = true;
             } catch(e) {}
-            //this.pairedDevices[device.id] = true;
-            //await this.updatePairedDevices();
           },
           async unexposeDevice(device) {
-            console.log('Unexposing device', device.id, device.name, device.class)
+            console.log('unexposing device', device.id, device.name, device.class)
             try {
               await this.request('DELETE', '/devices/' + device.id, device);
               this.devices.find(d => d.id === device.id).homekitty.exposed = false;
             } catch(e) {}
-            //console.log(device.name + ' removed from Homekit');
-            //this.pairedDevices[device.id] = false;
-            //await this.updatePairedDevices();
           },
           async clearStorage() {
             Homey.confirm('Are you sure!?', 'warning', async (err, response) => {
@@ -257,30 +258,14 @@
               }
             });
           },
-          async updatePairedDevices() {
-            return await this.setSetting('pairedDevices', this.pairedDevices);
-          },
-          canAdd(device) {
-            return this.pairedDevices[device.id] === false;
-          },
-          canRemove(device) {
-            return this.pairedDevices[device.id] === true;
-          }
         },
         async mounted() {
-          await this.getPairedDevices();
           await this.getDevices();
           await this.getSettings();
-          /*
-          await this.getLog();
-          Homey.on('log.new', res => {
-            this.log = res;
-          });
-          */
+          // watch for changes in exposed state, then reload devices
           Homey.on('settings.set', async (key) => {
-            if (key === 'pairedDevices') {
+            if (key === 'HomeKit.Exposed') {
               await this.getDevices();
-              this.pairedDevices = await this.getSetting('pairedDevices');
             }
           });
         },
