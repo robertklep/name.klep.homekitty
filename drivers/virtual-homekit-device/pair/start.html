@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>HomeKitty</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <script src="petite-vue.js"></script>
+    <script src='homey-pairing-mock.js'></script>
+    <script src='homey-pairing-mock-setup.js'></script>
+    <link rel="stylesheet" href="bulma.min.css">
+    <style>
+      /* prevent FOUC */
+      [v-cloak] { display: none }
+
+      /* override Homey styles */
+      .is-danger, .is-success { color : #fff  !important }
+      .is-danger  { background-color: #ff3860 !important }
+      .is-success { background-color: #23d160 !important }
+    </style>
+  </head>
+  <body>
+    <div id='app' v-cloak class='box' @vue:mounted='mounted'>
+
+      <!-- #1: pick a HomeKit service for the new device -->
+      <article class='message is-info'>
+        <div class='message-header'>
+          Pick a HomeKit service for your new device:
+        </div>
+        <div class='message-body'>
+          <div class='select'>
+            <select v-model='device.service'>
+              <option disabled value=''>—</option>
+              <option v-for='s of services'>{{ s }}</option>
+            </select>
+          </div>
+        </div>
+      </article>
+
+      <!-- #2: select a name for the new device -->
+      <article class='message is-info' v-if='device.service'>
+        <div class='message-header'>
+          Select a name for your new device:
+        </div>
+        <div class='message-body'>
+          <input class='input' type='text' v-model.trim='device.name'>
+        </div>
+      </article>
+
+      <!-- #3: create the device -->
+      <div class='container' v-if='device.service && device.name'>
+        <button class="button is-success is-light is-pulled-right" @click='createDevice'>Add Device!</button>
+        <div class='is-clearfix'></div>
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+    console.log('HomeKitty Pairing Page Ready');
+    PetiteVue.createApp({
+      device : {
+        service: '',
+        name:    null,
+      },
+      services: [],
+      async createDevice() {
+        try {
+          await Homey.createDevice({
+            name:  this.device.name,
+            class: 'other',
+            data:  {
+              // should be random enough
+              id : 'XX:XX:XX:XX:XX:XX'.replace(/X/g, () => '0123456789ABCDEF'.charAt(Math.floor(Math.random() * 16)))
+            },
+            settings: {
+              'HomeKit.Service' : this.device.service
+            }
+          });
+          Homey.done();
+        } catch(e) {
+          console.error(e);
+          Homey.alert('Unable to add device:\n', e.message);
+        }
+      },
+      async mounted() {
+        // load list of services
+        Homey.showLoadingOverlay();
+        this.services = await Homey.emit('Services.Get');
+        Homey.hideLoadingOverlay();
+      }
+    }).mount('#app');
+  </script>
+</body>
+</html>
