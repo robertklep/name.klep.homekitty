@@ -4,7 +4,7 @@
     <title>HomeKitty</title>
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
     <script src="/homey.js" data-origin="settings"></script>
-    <script src="vue.min.js"></script>
+    <script src="petite-vue.js"></script>
     <script src="fuse.min.js"></script>
     <script src='homey-settings-mock.js'></script>
     <script src='mock-setup.js'></script>
@@ -21,7 +21,7 @@
     </style>
   </head>
   <body>
-    <div id='app' v-cloak class='box'>
+    <div id='app' v-cloak class='box' @vue:mounted='mounted'>
 
       <div class="tabs is-centered is-boxed">
         <ul>
@@ -73,25 +73,6 @@
               </div>
             </div>
           </div>
-        </div>
-      </div>
-
-      <!-- LOG PAGE -->
-      <div class="columns" v-if="currentPage == 'log'">
-        <div class="column is-12 box">
-          <table class="table is-striped">
-            <tr v-for="log in reverseLog">
-              <td>{{log.time}}</td>
-              <td>
-                <span v-if="log.type == 'info' || log.type == undefined" class="tag is-info is-rounded is-small">Info</span>
-                <span v-if="log.type == 'success'" class="tag is-success is-rounded is-small">Success</span>
-                <span v-if="log.type == 'error'" class="tag is-danger is-rounded is-small">Error</span>
-              </td>
-              <td>
-                {{ log.string }}
-              </td>
-            </tr>
-          </table>
         </div>
       </div>
 
@@ -169,99 +150,89 @@
 
   <script>
     function onHomeyReady(Homey) {
-      console.log('ready');
+      console.log('HomeKitty Settings Ready');
       Homey.ready();
-      new Vue({
-        el   : '#app',
-        data : {
-          devices:          {},
-          search:           '',
-          currentPage:      'devices',
-          settleTime:       120,
-          bridgeIdentifier: 'Homey',
-          log:              []
+      PetiteVue.createApp({
+        // data
+        devices:          {},
+        search:           '',
+        currentPage:      'devices',
+        settleTime:       120,
+        bridgeIdentifier: 'Homey',
+        // methods
+        onKeyUp(ev) {
+          if (ev.key === 'Escape') {
+            this.search = '';
+          }
         },
-        methods: {
-          onKeyUp(ev) {
-            if (ev.key === 'Escape') {
-              this.search = '';
-            }
-          },
-          getSetting(name) {
-            return new Promise((resolve, reject) => {
-              Homey.get(name, (err, result) => {
-                err ? reject(err) : resolve(result);
-              });
+        getSetting(name) {
+          return new Promise((resolve, reject) => {
+            Homey.get(name, (err, result) => {
+              err ? reject(err) : resolve(result);
             });
-          },
-          setSetting(name, value) {
-            return new Promise((resolve, reject) => {
-              Homey.set(name, value, err => {
-                err ? reject(err) : resolve(value);
-              });
+          });
+        },
+        setSetting(name, value) {
+          return new Promise((resolve, reject) => {
+            Homey.set(name, value, err => {
+              err ? reject(err) : resolve(value);
             });
-          },
-          request(method, endpoint, data) {
-            return new Promise((resolve, reject) => {
-              Homey.api(method, endpoint, data, (err, result) => {
-                if (err) {
-                  console.error(err);
-                  Homey.alert(Homey.__('errors.apirequest') + ': ' + err.message);
-                  reject(err);
-                } else {
-                  resolve(result);
-                }
-              });
-            });
-          },
-          async getDevices() {
-            let devices  = await this.request('GET', '/devices');
-            this.devices = Object.values(devices);
-            console.log(`loaded ${ this.devices.length } devices`);
-          },
-          async getSettings() {
-            this.settleTime       = await this.getSetting('settleTime') || 120;
-            this.bridgeIdentifier = await this.getSetting('bridgeIdentifier') || 'Homey';
-          },
-          async getLog() {
-            this.log = []; // await this.request('GET', '/log');
-          },
-          setPage(page) {
-            this.currentPage = page;
-          },
-          isActive(page) {
-            if (this.currentPage == page) {
-              return 'is-active';
-            } else {
-              return;
-            }
-          },
-          async exposeDevice(device) {
-            console.log('exposing device', device.id, device.name, device.class)
-            try {
-              await this.request('PUT', '/devices/' + device.id, device);
-              this.devices.find(d => d.id === device.id).homekitty.exposed = true;
-            } catch(e) {}
-          },
-          async unexposeDevice(device) {
-            console.log('unexposing device', device.id, device.name, device.class)
-            try {
-              await this.request('DELETE', '/devices/' + device.id, device);
-              this.devices.find(d => d.id === device.id).homekitty.exposed = false;
-            } catch(e) {}
-          },
-          async clearStorage() {
-            Homey.confirm('Are you sure!?', 'warning', async (err, response) => {
-              if (response === true) {
-                await this.request('GET', '/clear-storage', { value : response });
-                Homey.alert('Storage is cleared, please restart the Homeykit app!');
+          });
+        },
+        request(method, endpoint, data) {
+          return new Promise((resolve, reject) => {
+            Homey.api(method, endpoint, data, (err, result) => {
+              if (err) {
+                console.error(err);
+                Homey.alert(Homey.__('errors.apirequest') + ': ' + err.message);
+                reject(err);
+              } else {
+                resolve(result);
               }
             });
-          },
+          });
         },
+        async getDevices() {
+          console.log('get devices');
+          let devices  = await this.request('GET', '/devices');
+          this.devices = Object.values(devices);
+          console.log(`loaded ${ this.devices.length } devices`);
+        },
+        setPage(page) {
+          this.currentPage = page;
+        },
+        isActive(page) {
+          if (this.currentPage == page) {
+            return 'is-active';
+          } else {
+            return;
+          }
+        },
+        async exposeDevice(device) {
+          console.log('exposing device', device.id, device.name, device.class)
+          try {
+            await this.request('PUT', '/devices/' + device.id, device);
+            this.devices.find(d => d.id === device.id).homekitty.exposed = true;
+          } catch(e) {}
+        },
+        async unexposeDevice(device) {
+          console.log('unexposing device', device.id, device.name, device.class)
+          try {
+            await this.request('DELETE', '/devices/' + device.id, device);
+            this.devices.find(d => d.id === device.id).homekitty.exposed = false;
+          } catch(e) {}
+        },
+        async clearStorage() {
+          Homey.confirm('Are you sure!?', 'warning', async (err, response) => {
+            if (response === true) {
+              await this.request('GET', '/clear-storage', { value : response });
+              Homey.alert('Storage is cleared, please restart the Homeykit app!');
+            }
+          });
+        },
+        // called from @vue:mounted event handler on #app
         async mounted() {
           await this.getDevices();
-          await this.getSettings();
           // watch for changes in exposed state, then reload devices
           Homey.on('settings.set', async (key) => {
             if (key === 'HomeKit.Exposed') {
@@ -269,38 +240,25 @@
             }
           });
         },
-        computed: {
-          filteredItems() {
-            var options = {
-              keys:               [ 'name', 'zoneName', 'class' ],
-              shouldSort:         true,
-              findAllMatches:     true,
-              threshold:          0.6,
-              location:           0,
-              distance:           100,
-              maxPatternLength:   32,
-              minMatchCharLength: 2
-            };
-            var fuse = new Fuse(this.devices, options);
-            if (this.search.length > 2) {
-              return fuse.search(this.search);
-            } else {
-              return this.devices;
-            }
-          },
-          reverseLog() {
-            return this.log.slice().reverse();
-          }
-        },
-        watch: {
-          async settleTime(value) {
-            await this.setSetting('settleTime', value);
-          },
-          async bridgeIdentifier(value) {
-            await this.setSetting('bridgeIdentifier', value);
+        get filteredItems() {
+          var options = {
+            keys:               [ 'name', 'zoneName', 'class' ],
+            shouldSort:         true,
+            findAllMatches:     true,
+            threshold:          0.6,
+            location:           0,
+            distance:           100,
+            maxPatternLength:   32,
+            minMatchCharLength: 2
+          };
+          var fuse = new Fuse(this.devices, options);
+          if (this.search.length > 2) {
+            return fuse.search(this.search);
+          } else {
+            return this.devices;
           }
         }
-      })
+      }).mount('#app');
     }
   </script>
 </body>
