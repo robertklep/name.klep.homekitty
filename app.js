@@ -28,26 +28,29 @@ module.exports = class HomeKitty extends Homey.App {
   #persistDir    = null;
   #watching      = false;
   #devicesMapped = defer();
-  #exposeMap     = {};
+  #exposed       = null;
 
   async onInit() {
     this.log('');
     this.log('🐈🏠 ✧･ﾟ: *✧･ﾟ Welcome to HomeKitty ﾟ･✧*:･ﾟ✧ 🏠🐈');
     this.log('');
 
-    // initialize API
-    await this.initializeAPI();
+    // initialize API handlers
+    await this.initializeApiHandlers();
 
     // create persistence directory
     await this.initializePersistence();
 
     // perform a reset
-    if (false) {
+    if (Homey.env.HOMEKITTY_RESET === 'true') {
       await this.reset();
     }
 
-    // initialize Homey API
-    await this.initializeApi();
+    // initialize expose map
+    this.initializeExposeMap();
+
+    // initialize Homey Web API
+    await this.initializeWebApi();
 
     // wait for devices to settle
     await this.settleDevices();
@@ -65,7 +68,7 @@ module.exports = class HomeKitty extends Homey.App {
     await this.startBridge();
   }
 
-  async initializeAPI() {
+  async initializeApiHandlers() {
     for (const [ name, fn ] of Object.entries(this.api)) {
       this.api[name] = fn.bind(this);
     }
@@ -101,8 +104,18 @@ module.exports = class HomeKitty extends Homey.App {
     }
   }
 
-  async initializeApi() {
+  async initializeExposeMap() {
+    this.#exposed = new StorageBackedMap(
+      () =>   this.homey.settings.get(Constants.SETTINGS_EXPOSE_MAP) || {},
+      data => this.homey.settings.set(Constants.SETTINGS_EXPOSE_MAP, data)
+    );
+  }
+
+  async initializeWebApi() {
     this.#api = new HomeyAPIApp({ homey: this.homey });
+
+    // have to do this really early to work around a bug in the Web API
+    await this.#api.devices.connect();
   }
 
   async settleDevices() {
@@ -199,17 +212,7 @@ module.exports = class HomeKitty extends Homey.App {
     return 49152 + (0 | Math.random() * 11847);
   }
 
-  async storeExposeMap() {
-    this.homey.settings.set(Constants.SETTINGS_EXPOSE_MAP, this.#exposeMap);
-  }
-
-  async loadExposeMap() {
-    this.#exposeMap = this.homey.settings.get(Constants.SETTINGS_EXPOSE_MAP) || {};
-  }
-
   async mapDevices() {
-    this.loadExposeMap();
-
     // use the app logger for the device mapper
     DeviceMapper.setLogger(this.log.bind(this));
 
@@ -218,8 +221,8 @@ module.exports = class HomeKitty extends Homey.App {
       await this.addDeviceToHomeKit(device);
     }
 
-    // update exposure map
-    this.storeExposeMap();
+    // save exposure map
+    this.#exposed.save();
 
     // done mapping devices
     this.#devicesMapped.resolve();
@@ -243,8 +246,8 @@ module.exports = class HomeKitty extends Homey.App {
 
     // if we don't know the exposure state of the device (i.e.
     // it's new to us), default to exposing it to HK
-    if (! (device.id in this.#exposeMap)) {
-      this.#exposeMap[device.id] = true;
+    if (! this.#exposed.has(device.id)) {
+      this.#exposed.set(device.id, true);
     }
 
     this.log(`[${ device.name }:${ device.id }] trying mapper`);
@@ -253,12 +256,12 @@ module.exports = class HomeKitty extends Homey.App {
       this.log(`${ prefix } was able to map 🥳`);
 
       // expose it to HK unless the user doesn't want to
-      if (this.getExposeState(device.id) !== false) {
+      if (this.#exposed.get(device.id) !== false) {
         this.#bridge.addBridgedAccessory(mappedDevice.accessorize());
       }
       return true;
     }
-    this.#exposeMap[device.id] = false;
+    this.#exposed.set(device.id, false);
     this.log(`${ prefix } unable to map 🥺`);
     return false;
   }
@@ -267,8 +270,8 @@ module.exports = class HomeKitty extends Homey.App {
     // delete device from HomeKit
     await this.deleteDeviceFromHomeKit(device);
     // delete device from the exposure list
-    delete this.#exposeMap[device.id];
-    await this.storeExposeMap();
+    this.#exposed.delete(device.id);
+    this.#exposed.save();
   }
 
   getAccessoryById(id) {
@@ -280,7 +283,9 @@ module.exports = class HomeKitty extends Homey.App {
     if (! accessory) return false;
     this.log(`removing device with id ${ device.id } from HomeKit:`);
     try {
+      console.log(accessory);
       this.#bridge.removeBridgedAccessory(accessory);
+      await accessory.destroy();
       this.log(`- success 🥳`);
       return true;
     } catch(e) {
@@ -290,19 +295,8 @@ module.exports = class HomeKitty extends Homey.App {
     }
   }
 
-  getExposeState(id) {
-    return this.#exposeMap[id];
-  }
-
-  async setExposeState(id, state, defer = true) {
-    this.#exposeMap[id] = state;
-    if (! defer) {
-      await this.storeExposeMap();
-    }
-  }
-
   async getDevices() {
-    return this.#api.devices.getDevices();
+    return await this.#api.devices.getDevices();
   }
 
   async getDeviceById(id) {
@@ -335,8 +329,6 @@ module.exports = class HomeKitty extends Homey.App {
     if (this.#watching) return;
     this.#watching = true;
 
-    await this.#api.devices.connect();
-
     this.#api.devices.on('device.create', device => {
       this.log('device created event:', device.name, device.id);
     });
@@ -351,15 +343,17 @@ module.exports = class HomeKitty extends Homey.App {
     this.#api.devices.on('device.update', debounce(async (device) => {
       this.log('device updated event:', device.name, device.id);
 
-      // check if it's already exposed through HomeKit
+      // check if device is already exposed through HomeKit
       let accessory = this.getAccessoryById(device.id);
       if (accessory) {
-        this.log('- already exposed via HomeKit');
-        // TODO: remove-then-add?
-        return;
+        this.log('- already exposed via HomeKit, will delete to update');
+        // delete existing accessory and try adding it again
+        await this.deleteDeviceFromHomeKit(device);
       } else {
-        this.log('- not yet exposed via HomeKit, will try to add it.');
-        await this.addDeviceToHomeKit(device);
+        this.log('- not yet exposed via HomeKit, will add it as new');
+      }
+      if (await this.addDeviceToHomeKit(device)) {
+        await this.#exposed.save();
       }
     }, 500));
   }
@@ -374,7 +368,7 @@ module.exports = class HomeKitty extends Homey.App {
         // pass the device state (supported/exposed) to the API
         device.homekitty = {
           supported: Mapper.canMapDevice(device),
-          exposed:   this.#exposeMap[device.id] !== false,
+          exposed:   this.#exposed.get(device.id) !== false,
         }
         return device;
       });
@@ -388,7 +382,8 @@ module.exports = class HomeKitty extends Homey.App {
       }
 
       // update exposure state
-      await this.setExposeState(id, true, false);
+      this.#exposed.set(id, true);
+      this.#exposed.save();
 
       // done
       return 'ok';
@@ -400,10 +395,41 @@ module.exports = class HomeKitty extends Homey.App {
       }
 
       // update exposure state
-      await this.setExposeState(id, false, false);
+      this.#exposed.set(id, false);
+      this.#exposed.save();
 
       // done
       return 'ok';
     }
+  }
+}
+
+class StorageBackedMap extends Map {
+  #dirty  = false;
+  #onSave = null;
+
+  constructor(data, onSave) {
+    super(Object.entries(data));
+    this.#onSave = onSave;
+  }
+
+  set(key, value) {
+    this.#dirty = this.#dirty || this.get(key) !== value;
+    return super.set(key, value);
+  }
+
+  delete(key) {
+    this.#dirty = this.#dirty || this.has(key);
+    return super.delete(key);
+  }
+
+  save() {
+    if (! this.#dirty) return;
+    this.#onSave(Object.fromEntries(this));
+    this.#dirty = false;
+  }
+
+  isDirty() {
+    return this.#dirty;
   }
 }
