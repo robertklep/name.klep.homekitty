@@ -3,51 +3,58 @@
   <head>
     <title>HomeKitty</title>
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <link rel="stylesheet" href="bulma.min.css">
     <script src="petite-vue.js"></script>
     <script src='homey-pairing-mock.js'></script>
     <script src='homey-pairing-mock-setup.js'></script>
-    <link rel="stylesheet" href="bulma.min.css">
     <style>
       /* prevent FOUC */
       [v-cloak] { display: none }
 
-      /* override Homey styles */
-      .is-danger, .is-success { color : #fff  !important }
-      .is-danger  { background-color: #ff3860 !important }
-      .is-success { background-color: #23d160 !important }
+      /* use Homey colors */
+      .message-header {
+        background-image: var(--homey-interactive-gradient-blue) !important;
+      }
     </style>
   </head>
   <body>
-    <div id='app' v-cloak class='box' @vue:mounted='mounted'>
+    <header class='homey-header'>
+      <h1 class='homey-title'>Virtual HomeKit Device</h1>
+    </header>
+    <div id='app' v-cloak clas-s='box' @vue:mounted='mounted'>
 
       <!-- #1: pick a HomeKit service for the new device -->
-      <article class='message is-info is-size-4 is-size-7-mobile'>
+      <article class='message is-info is-size-4 is-size-6-mobile'>
         <div class='message-header'>
-          Pick a HomeKit service for your new device:
+          HomeKit service for new device:
         </div>
         <div class='message-body'>
-          <div class='select'>
-            <select v-model='device.service'>
-              <option disabled value=''>—</option>
-              <option v-for='s of services'>{{ s }}</option>
-            </select>
-          </div>
+          <select class='homey-form-select' v-model='device.service'>
+            <option disabled value=''>—</option>
+            <option v-for='s of services'>{{ s }}</option>
+          </select>
         </div>
       </article>
 
       <!-- #2: select a name for the new device -->
-      <article class='message is-info is-size-4 is-size-7-mobile' v-if='device.service'>
+      <article class='message is-info is-size-4 is-size-6-mobile' v-if='device.service'>
         <div class='message-header'>
-          Select a name for your new device:
+          Name for new device:
         </div>
         <div class='message-body'>
-          <input class='input is-size-4 is-size-7-mobile' type='text' v-model.trim='device.name'>
+          <input class='homey-form-input is-size-4 is-size-6-mobile' type='text' v-model.trim='device.name'>
         </div>
       </article>
 
       <!-- #3: create the device -->
-      <div class='container is-size-4 is-size-7-mobile' v-if='device.service && device.name'>
-        <button class="button is-success is-light is-pulled-right is-size-4 is-size-7-mobile" @click='createDevice'>Add Device!</button>
+      <div class='container is-size-4 is-size-6-mobile' v-if='device.service && device.name'>
+        <button :class='{ 
+          "is-loading":                isCreating,
+          "homey-button-primary-full": true,
+          "is-pulled-right":           true,
+          "is-size-4":                 true,
+          "is-size-6-mobile":          true,
+        }' @click='createDevice'>Create Device</button>
         <div class='is-clearfix'></div>
       </div>
 
@@ -57,13 +64,15 @@
   <script>
     console.log('HomeKitty Pairing Page Ready');
     PetiteVue.createApp({
-      device : {
+      isCreating: false,
+      services:   [],
+      device:     {
         service: '',
         name:    null,
       },
-      services: [],
       async createDevice() {
         try {
+          this.isCreating = true;
           await Homey.createDevice({
             name:  this.device.name,
             class: 'other',
@@ -79,6 +88,8 @@
         } catch(e) {
           console.error(e);
           Homey.alert('Unable to add device:\n', e.message);
+        } finally {
+          this.isCreating = false;
         }
       },
       async mounted() {
