@@ -12,6 +12,14 @@ if (! window.Homey) {
     }
 
     // Mock API
+    loadStyleLibrary(homeyUrl) {
+      const link = document.createElement('link');
+      link.type  = 'text/css';
+      link.rel   = 'stylesheet';
+      link.href  = new URL('/manager/webserver/assets/css/homey.css', homeyUrl).toString();
+      document.querySelector('head').appendChild(link);
+    }
+
     setSettings(settings) {
       this.settings = Object.assign({}, settings);
     }
