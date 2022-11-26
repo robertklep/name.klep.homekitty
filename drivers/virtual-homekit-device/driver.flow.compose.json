@@ -1,0 +1,35 @@
+{
+  "actions": [
+    {
+      "id": "set-characteristic",
+      "title": {
+        "en": "Set Characteristic"
+      },
+      "titleFormatted": {
+        "en": "Set value of [[name]] to [[value]]"
+      },
+      "args": [
+        {
+          "type": "autocomplete",
+          "name": "name",
+          "title": {
+            "en": "Characteristic Name"
+          },
+          "placeholder": {
+            "en": "Select characteristic"
+          }
+        },
+        {
+          "type": "text",
+          "name": "value",
+          "title": {
+            "en": "Characteristic Value"
+          },
+          "placeholder": {
+            "en": "value"
+          }
+        }
+      ]
+    }
+  ]
+}
