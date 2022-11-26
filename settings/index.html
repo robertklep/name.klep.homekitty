@@ -8,7 +8,6 @@
     <script src="fuse.min.js"></script>
     <script src='homey-settings-mock.js'></script>
     <script src='mock-setup.js'></script>
-    <script src='mock-devices.js'></script>
     <link rel="stylesheet" href="bulma.min.css">
     <style>
       html > body.homekitty {
@@ -20,8 +19,8 @@
         margin-left: 0 !important;
       }
 
-      #homekitty input.input {
-        padding: 0 0.5em !important;
+      #homekitty .tabs li {
+        font-size: var(--homey-font-size-default);
       }
 
       /* prevent FOUC */
@@ -33,6 +32,22 @@
       .button.is-danger  { background-color: #ff3860 !important }
       .button.is-success { background-color: #23d160 !important }
       .button.is-static  { background-color: #f5f5f5 !important }
+
+      [class*="homey-button"] {
+        padding:       0.5em 1em !important;
+        border-radius: 0.5em !important;
+      }
+
+      [class*="homey-button"].is-danger {
+        background-image: none;
+        background-color: #ff3860 !important;
+      }
+
+      [class*="homey-button"].is-success {
+        background-image: none;
+        background-color: #23d160 !important;
+      }
+
     </style>
   </head>
   <body class='homekitty'>
@@ -54,7 +69,7 @@
       <!-- DEVICES PAGE -->
       <div class='p-2' v-if="currentPage == 'devices'">
         <div class='block'>
-          <input v-model='search' @keyup='onKeyUp' class='input is-link is-small' type='text' placeholder='Filter...'>
+          <input v-model='search' @keyup='onKeyUp' class='homey-form-input is-link is-small' type='text' placeholder='Filter...'>
         </div>
         <div class='columns is-multiline is-tablet'>
           <div v-for='device in filteredItems' :key='device.id' class='column is-half-tablet is-one-third-desktop'>
@@ -75,14 +90,14 @@
               <div class='card-footer'>
                 <div class='card-footer-item'>
                   <div v-if='! device.available'>
-                    <button class='button is-white is-static is-size-6 is-size-7-mobile' data-i18n='device.unavailable'>Unavailable 😬</button>
+                    <button class='homey-button-disabled is-disabled is-size-6 is-size-7-mobile' data-i18n='device.unavailable'>Unavailable 😬</button>
                   </div>
                   <div v-else-if='! device.homekitty.supported'>
-                    <button class='button is-static is-size-6 is-size-7-mobile' data-i18n='device.unsupported'>Device unsupported by HomeKitty 🥺</button>
+                    <button class='homey-button-disabled is-disabled is-size-6 is-size-7-mobile' data-i18n='device.unsupported'>Device unsupported by HomeKitty 🥺</button>
                   </div>
                   <div v-else>
-                    <a v-if="device.homekitty.exposed"   @click="unexposeDevice(device)" class="button is-danger  is-size-6 is-size-7-mobile"  data-i18n="device.delete">Delete from HomeKit</a>
-                    <a v-else                            @click="exposeDevice(device)"   class="button is-success is-size-6 is-size-7-mobile" data-i18n="device.add">Add to HomeKit</a>
+                    <a v-if="device.homekitty.exposed"   @click="unexposeDevice(device)" class="homey-button-primary is-danger  is-size-6 is-size-7-mobile"  data-i18n="device.delete">Delete from HomeKit</a>
+                    <a v-else                            @click="exposeDevice(device)"   class="homey-button-primary is-success is-size-6 is-size-7-mobile" data-i18n="device.add">Add to HomeKit</a>
                   </div>
                 </div>
               </div>
