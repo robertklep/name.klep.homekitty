@@ -230,9 +230,11 @@ module.exports = class HomeKitty extends Homey.App {
 
   // XXX: make sure a device isn't already mapped
   async addDeviceToHomeKit(device) {
-    const prefix = `[${ device?.name || "NO NAME" }:${ device?.id || "NO_ID" }]`;
+    // don't add our own devices like this
+    if (device?.driverUri === 'homey:app:name.klep.homekitty') return false;
 
-    // XXX: how about `device.available`?
+    // XXX: make sure we have an actual useable device
+    const prefix = `[${ device?.name || "NO NAME" }:${ device?.id || "NO_ID" }]`;
     if (! device || ! device.ready || ! device.capabilitiesObj) {
       this.error(`${ prefix } device not ready or doesn't have capabilitiesObj`);
       return false;
@@ -330,18 +332,21 @@ module.exports = class HomeKitty extends Homey.App {
     this.#watching = true;
 
     this.#api.devices.on('device.create', device => {
-      this.log('device created event:', device.name, device.id);
+      if (device?.driverUri === 'homey:app:name.klep.homekitty') return;
+      this.log(`[EV] device created — name=${ device.name} id=${ device.id } driver=${ device.driverUri }`);
     });
 
     this.#api.devices.on('device.delete', async (device) => { // really just `{ id }`
-      this.log('device deleted event:', device.id);
+      if (device?.driverUri === 'homey:app:name.klep.homekitty') return;
+      this.log(`[EV] device deleted — id=${ device.id }`);
       await this.deleteDevice(device);
     });
 
     // debounce update events because they may get emitted
     // multiple times during device creation
     this.#api.devices.on('device.update', debounce(async (device) => {
-      this.log('device updated event:', device.name, device.id);
+      if (device?.driverUri === 'homey:app:name.klep.homekitty') return;
+      this.log(`[EV] device updated — name=${ device.name} id=${ device.id } driver=${ device.driverUri }`);
 
       // check if device is already exposed through HomeKit
       let accessory = this.getAccessoryById(device.id);
