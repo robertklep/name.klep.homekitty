@@ -277,7 +277,8 @@ module.exports = class HomeKitty extends Homey.App {
   }
 
   getAccessoryById(id) {
-    return this.#bridge.bridgedAccessories.find(r => r.UUID === id);
+    const UUID = uuid.generate(id);
+    return this.#bridge.bridgedAccessories.find(r => r.UUID === UUID);
   }
 
   async deleteDeviceFromHomeKit(device) {
@@ -285,9 +286,9 @@ module.exports = class HomeKitty extends Homey.App {
     if (! accessory) return false;
     this.log(`removing device with id ${ device.id } from HomeKit:`);
     try {
-      console.log(accessory);
       this.#bridge.removeBridgedAccessory(accessory);
       await accessory.destroy();
+      Mapper.forgetDevice(device);
       this.log(`- success 🥳`);
       return true;
     } catch(e) {
