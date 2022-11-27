@@ -1,7 +1,8 @@
 {
   "tabs": {
     "devices": "Devices",
-    "log": "Log"
+    "settings": "Settings",
+    "qrcode" : "QR Code"
   },
   "device": {
     "add": "Add to HomeKit",

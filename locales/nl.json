@@ -2,7 +2,8 @@
 
   "tabs": {
     "devices": "Apparaten",
-    "log": "Log"
+    "settings": "Instellingen",
+    "qrcode" : "QR Code"
   },
   "device": {
     "add":         "Toevoegen aan HomeKit",

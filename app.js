@@ -164,6 +164,14 @@ module.exports = class HomeKitty extends Homey.App {
 
     // Store current identifier.
     this.homey.settings.set(Constants.SETTINGS_BRIDGE_IDENTIFIER, identifier);
+
+    // watch for changes of the identifier (from the app settings page)
+    this.homey.settings.on('set', key => {
+      if (key !== Constants.SETTINGS_BRIDGE_IDENTIFIER) return;
+      const identifier = this.homey.settings.get(Constants.SETTINGS_BRIDGE_IDENTIFIER);
+      this.log(`bridge identifier has changed to '${ identifier }', will stop bridge and app!`);
+      this.exit();
+    });
   }
 
   async startBridge() {
@@ -324,7 +332,11 @@ module.exports = class HomeKitty extends Homey.App {
       this.error('- failed 😭 ');
       this.error(e);
     }
-    // TODO: restart app
+    this.exit();
+  }
+  
+  async exit() {
+    await this.#bridge.unpublish();
     process.exit(1);
   }
 

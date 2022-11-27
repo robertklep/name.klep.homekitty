@@ -26,13 +26,7 @@
       /* prevent FOUC */
       [v-cloak] { display: none }
 
-      /* override Homey styles */
-      .button.is-danger,
-      .button.is-success  { color : #fff  !important }
-      .button.is-danger  { background-color: #ff3860 !important }
-      .button.is-success { background-color: #23d160 !important }
-      .button.is-static  { background-color: #f5f5f5 !important }
-
+      /* override some styles */
       [class*="homey-button"] {
         padding:       0.5em 1em !important;
         border-radius: 0.5em !important;
@@ -48,11 +42,17 @@
         background-color: #23d160 !important;
       }
 
+      /* use Homey colors */
+      .message-header {
+        background-image: var(--homey-interactive-gradient-blue) !important;
+        font-size:        var(--homey-font-size-small) !important;
+      }
     </style>
   </head>
   <body class='homekitty'>
     <div id='homekitty' v-cloak clas-s='box' @vue:mounted='mounted'>
 
+      <!-- Tabs -->
       <div class="tabs is-centered is-boxed">
         <ul>
           <li v-bind:class="isActive('devices')">
@@ -62,6 +62,9 @@
           </li>
           <li v-bind:class="isActive('settings')">
             <a @click="setPage('settings')" data-i18n="tabs.settings">Settings</a>
+          </li>
+          <li v-bind:class="isActive('qrcode')">
+            <a @click="setPage('qrcode')" data-i18n="tabs.qrcode">QR Code</a>
           </li>
         </ul>
       </div>
@@ -108,9 +111,9 @@
 
       <!-- SETTINGS PAGE -->
       <div class='p-2' v-if="currentPage == 'settings'">
-        <article class='message is-link is-normal'>
-          <div class='message-header'>
-            <p class='has-text-centered'>Change Bridge Identifier</p>
+        <article class='message is-link is-normal' v-if='bridgeIdentifier'>
+          <div class='message-header has-text-centered'>
+            Change Bridge Identifier
           </div>
           <div class='message-body'>
             <p>
@@ -135,9 +138,20 @@
                   <label class='label'>Bridge Identifier:</label>
                 </div>
                 <div class='field-body'>
-                  <div class='field'>
+                  <div class='field is-horizontal is-grouped'>
                     <p class='control'>
-                      <input class='input' type='string' v-model='bridgeIdentifier'>
+                      <input class='homey-form-input' minlength=3 type='text' v-model.trim='newBridgeIdentifier'>
+                    </p>
+                    <p class='control'>
+                      <button
+                        :disabled = '! isValidIdentifier()'
+                        @click    = 'setBridgeIdentifier'
+                        :class    = '{
+                          "homey-button":    true,
+                          "is-disabled":     ! isValidIdentifier(),
+                          "is-pulled-right": true,
+                        }'
+                      >Change</button>
                     </p>
                   </div>
                 </div>
@@ -147,7 +161,7 @@
         </article>
         <article class='message is-danger is-normal'>
           <div class='message-header'>
-            <p>!!! HomeKitty Reset !!!</p>
+            🚨 HomeKitty Reset 🚨
           </div>
           <div class='message-body'>
             <p>
@@ -157,6 +171,18 @@
             <p style='margin-top: 0.75rem'>
               <a @click="clearStorage()" class='button is-danger' data-i18n="app.clearStorage">Clear HomeKit storage and start over.</a>
             </p>
+          </div>
+        </article>
+      </div>
+
+      <!-- QR CODE PAGE -->
+      <div class='p-2' v-if="currentPage == 'qrcode'">
+        <article class='message is-link is-normal'>
+          <div class='message-header'>
+            QR Code
+          </div>
+          <div class='message-body'>
+            <img src='../assets/qrcode/small.png'>
           </div>
         </article>
       </div>
@@ -171,11 +197,13 @@
       Homey.ready();
       PetiteVue.createApp({
         // data
-        devices:          {},
-        search:           '',
-        currentPage:      'devices',
-        settleTime:       120,
-        bridgeIdentifier: 'Homey',
+        devices:                    {},
+        search:                     '',
+        currentPage:                'devices',
+        settleTime:                 120,
+        bridgeIdentifier:           null,
+        newBridgeIdentifier:        null,
+        hasBridgeIdentifierChanged: false,
         // methods
         onKeyUp(ev) {
           if (ev.key === 'Escape') {
@@ -239,16 +267,44 @@
             this.devices.find(d => d.id === device.id).homekitty.exposed = false;
           } catch(e) {}
         },
+        isValidIdentifier() {
+          const ident = this.newBridgeIdentifier;
+          return ident !== this.bridgeIdentifier && ident.match(/^\S{2,}.*\S$/);
+        },
+        async setBridgeIdentifier() {
+          Homey.confirm('Are you sure!?', 'warning', async (err, response) => {
+            if (response !== true) return;
+            try {
+              await this.setSetting('Bridge.Identifier', this.newBridgeIdentifier);
+              Homey.alert('Bridge identifier has changed, please restart the HomeKitty app!');
+            } catch(e) {
+              console.error(e);
+              Homey.alert('Error', e.message);
+            }
+          });
+        },
         async clearStorage() {
           Homey.confirm('Are you sure!?', 'warning', async (err, response) => {
             if (response === true) {
               await this.request('GET', '/clear-storage', { value : response });
-              Homey.alert('Storage is cleared, please restart the Homeykit app!');
+              Homey.alert('Storage is cleared, please restart the HomeKitty app!');
             }
+          });
+        },
+        getSetting(key) {
+          return new Promise((resolve, reject) => {
+            Homey.get(key, (err, result) => err ? reject(err) : resolve(result ?? null));
+          });
+        },
+        setSetting(key, value) {
+          return new Promise((resolve, reject) => {
+            Homey.set(key, value, err => err ? reject(err) : resolve(value));
           });
         },
         // called from @vue:mounted event handler on #app
         async mounted() {
+          this.bridgeIdentifier    = await this.getSetting('Bridge.Identifier');
+          this.newBridgeIdentifier = this.bridgeIdentifier;
           await this.getDevices();
           // watch for changes in exposed state, then reload devices
           Homey.on('settings.set', async (key) => {
@@ -274,7 +330,7 @@
           } else {
             return this.devices;
           }
-        }
+        },
       }).mount('#homekitty');
     }
   </script>
