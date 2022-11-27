@@ -67,7 +67,7 @@
       "path" : "/devices/:id"
     },
     "reset" : {
-      "method" : "GET",
+      "method" : "POST",
       "path" : "/reset"
     }
   }

@@ -314,10 +314,9 @@ module.exports = class HomeKitty extends Homey.App {
     return this.#api.devices.getDevice({ id });
   }
 
-  async reset() {
+  async reset(delayedExit = false) {
     this.log('resetting credentials');
     // reset credentials and persistence (start over)
-    // TODO: identifier should be set to a new value, otherwise it keeps getting deleted
     this.homey.settings.unset(Constants.SETTINGS_BRIDGE_IDENTIFIER);
     this.homey.settings.unset(Constants.SETTINGS_BRIDGE_USERNAME);
     this.homey.settings.unset(Constants.SETTINGS_BRIDGE_PORT);
@@ -332,9 +331,14 @@ module.exports = class HomeKitty extends Homey.App {
       this.error('- failed 😭 ');
       this.error(e);
     }
+    // API calls may want to set this, otherwise the app exits
+    // before the API call gets a response and the frontend balks.
+    if (delayedExit) {
+      return setTimeout(() => this.exit(), 1000);
+    }
     this.exit();
   }
-  
+
   async exit() {
     await this.#bridge.unpublish();
     process.exit(1);
@@ -417,6 +421,11 @@ module.exports = class HomeKitty extends Homey.App {
       this.#exposed.save();
 
       // done
+      return 'ok';
+    },
+
+    async reset() {
+      await this.reset(true);
       return 'ok';
     }
   }
