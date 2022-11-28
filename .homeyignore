@@ -1,6 +1,7 @@
+.DS_Store
+.git
 env.json
 TODO
-.git
 debug
 assets/originals/
 drivers
