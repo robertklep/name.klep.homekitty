@@ -1,9 +1,9 @@
 const { Driver }  = require('homey');
 const { Service } = require('../../modules/hap-nodejs');
 
-module.exports = class VirtualHomeKitDriver extends Driver {
+module.exports = class VirtualServiceDriver extends Driver {
   async onInit() {
-    this.log('VirtualHomeKitDriver has been initialized');
+    this.log('VirtualServiceDriver has been initialized');
 
     this.cards = {
       setCharacteristicCard : this.setupSetCharacteristicCard()
