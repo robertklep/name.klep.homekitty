@@ -1,10 +1,10 @@
 {
   "id": "name.klep.homekitty",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "compatibility": ">=5.0.0",
   "sdk": 3,
   "brandColor": "#FE9C21",
-  "homeyCommunityTopicId": 70469,
+  "homeyCommunityTopicId": 72824,
   "permissions": [
     "homey:manager:api"
   ],
