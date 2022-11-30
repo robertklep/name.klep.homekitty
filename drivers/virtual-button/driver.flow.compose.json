@@ -1,0 +1,10 @@
+{
+  "triggers": [
+    {
+      "id": "buttonpress",
+      "title": {
+        "en": "Button pressed"
+      }
+    }
+  ]
+}
