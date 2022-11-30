@@ -270,7 +270,7 @@ module.exports = class HomeKitty extends Homey.App {
     }
 
     this.log(`[${ device.name }:${ device.id }] trying mapper`);
-    const mappedDevice = Mapper.mapDevice(device);
+    const mappedDevice = DeviceMapper.mapDevice(device);
     if (mappedDevice) {
       this.log(`${ prefix } was able to map 🥳`);
 
@@ -305,7 +305,7 @@ module.exports = class HomeKitty extends Homey.App {
     try {
       this.#bridge.removeBridgedAccessory(accessory);
       await accessory.destroy();
-      Mapper.forgetDevice(device);
+      DeviceMapper.forgetDevice(device);
       this.log(`- success 🥳`);
       return true;
     } catch(e) {
@@ -404,7 +404,7 @@ module.exports = class HomeKitty extends Homey.App {
         .map(device => {
           // pass the device state (supported/exposed) to the API
           device.homekitty = {
-            supported: Mapper.canMapDevice(device),
+            supported: DeviceMapper.canMapDevice(device),
             exposed:   this.#exposed.get(device.id) !== false,
           }
           return device;
