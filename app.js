@@ -134,7 +134,7 @@ module.exports = class HomeKitty extends Homey.App {
     let previousCount = 0;
     while (true) {
       const newCount = Object.keys(await this.getDevices()).length;
-      if (newCount && newCount === previousDeviceCount) {
+      if (newCount && newCount === previousCount) {
         this.log(`devices have settled (counted ${ newCount } in total)`);
         break;
       }
