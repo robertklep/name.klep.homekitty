@@ -28,6 +28,7 @@ module.exports = class HomeKitty extends Homey.App {
   #persistDir    = null;
   #watching      = false;
   #devicesMapped = defer();
+  #bridgeReady   = defer();
   #exposed       = null;
 
   async onInit() {
@@ -194,12 +195,20 @@ module.exports = class HomeKitty extends Homey.App {
       this.homey.settings.set(Constants.SETTINGS_BRIDGE_PORT,       port);
       this.homey.settings.set(Constants.SETTINGS_BRIDGE_SETUP_ID,   setupID);
       this.homey.settings.set(Constants.SETTINGS_BRIDGE_PINCODE,    pincode);
+      this.#bridgeReady.resolve();
     } catch(e) {
       this.error('  - unable to start! 😭');
       this.error(e);
       // cannot continue
       throw Error('Internal Error (publish)');
     }
+  }
+
+  async getBridge(wait = true) {
+    if (wait) {
+      await this.#bridgeReady;
+    }
+    return this.#bridge;
   }
 
   getBridgeCredentials() {
