@@ -140,7 +140,7 @@ module.exports = class HomeKitty extends Homey.App {
       }
       previousCount = newCount;
       this.log(`devices have not yet settled, waiting for 60 seconds...`);
-      await delay(60000 * 1000);
+      await delay(60000);
     }
   }
 
