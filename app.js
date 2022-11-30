@@ -239,7 +239,7 @@ module.exports = class HomeKitty extends Homey.App {
   // XXX: make sure a device isn't already mapped
   async addDeviceToHomeKit(device) {
     // don't add our own devices like this
-    if (device?.driverUri === 'homey:app:name.klep.homekitty') return false;
+    if (this.isVirtualDevice(device)) return;
 
     // XXX: make sure we have an actual useable device
     const prefix = `[${ device?.name || "NO NAME" }:${ device?.id || "NO_ID" }]`;
@@ -314,6 +314,10 @@ module.exports = class HomeKitty extends Homey.App {
     return this.#api.devices.getDevice({ id });
   }
 
+  isVirtualDevice(device) {
+    return device?.driverUri === 'homey:app:name.klep.homekitty';
+  }
+
   async reset(delayedExit = false) {
     this.log('resetting credentials');
     // reset credentials and persistence (start over)
@@ -386,14 +390,16 @@ module.exports = class HomeKitty extends Homey.App {
       await this.#devicesMapped;
 
       // return the list of devices
-      return Object.values(await this.getDevices()).map(device => {
-        // pass the device state (supported/exposed) to the API
-        device.homekitty = {
-          supported: Mapper.canMapDevice(device),
-          exposed:   this.#exposed.get(device.id) !== false,
-        }
-        return device;
-      });
+      return Object.values(await this.getDevices())
+        .filter(device => ! this.isVirtualDevice(device))
+        .map(device => {
+          // pass the device state (supported/exposed) to the API
+          device.homekitty = {
+            supported: Mapper.canMapDevice(device),
+            exposed:   this.#exposed.get(device.id) !== false,
+          }
+          return device;
+        });
     },
 
     async exposeDevice(id) {
