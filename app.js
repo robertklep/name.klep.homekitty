@@ -107,7 +107,7 @@ module.exports = class HomeKitty extends Homey.App {
 
   async initializeExposeMap() {
     this.#exposed = new StorageBackedMap(
-      () =>   this.homey.settings.get(Constants.SETTINGS_EXPOSE_MAP) || {},
+      this.homey.settings.get(Constants.SETTINGS_EXPOSE_MAP),
       data => this.homey.settings.set(Constants.SETTINGS_EXPOSE_MAP, data)
     );
   }
@@ -269,14 +269,17 @@ module.exports = class HomeKitty extends Homey.App {
       this.#exposed.set(device.id, true);
     }
 
-    this.log(`[${ device.name }:${ device.id }] trying mapper`);
+    this.log(`${ prefix } trying mapper`);
     const mappedDevice = DeviceMapper.mapDevice(device);
     if (mappedDevice) {
       this.log(`${ prefix } was able to map 🥳`);
 
       // expose it to HK unless the user doesn't want to
       if (this.#exposed.get(device.id) !== false) {
+        this.log(`${ prefix } - device should be exposed`);
         this.#bridge.addBridgedAccessory(mappedDevice.accessorize());
+      } else {
+        this.log(`${ prefix } - device not exposed`);
       }
       return true;
     }
@@ -451,7 +454,11 @@ class StorageBackedMap extends Map {
   #onSave = null;
 
   constructor(data, onSave) {
-    super(Object.entries(data));
+    super();
+    for (const [ key, value ] of Object.entries(data || {})) {
+      this.set(key, value);
+    }
+    this.#dirty  = false; // treat as not dirty after loading
     this.#onSave = onSave;
   }
 
