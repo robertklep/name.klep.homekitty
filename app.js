@@ -69,6 +69,11 @@ module.exports = class HomeKitty extends Homey.App {
     await this.startBridge();
   }
 
+  onUninit() {
+    this.log('[onUninit] saving expose map');
+    this.#exposed.save();
+  }
+
   async initializeApiHandlers() {
     for (const [ name, fn ] of Object.entries(this.api)) {
       this.api[name] = fn.bind(this);
@@ -110,6 +115,10 @@ module.exports = class HomeKitty extends Homey.App {
       this.homey.settings.get(Constants.SETTINGS_EXPOSE_MAP),
       data => this.homey.settings.set(Constants.SETTINGS_EXPOSE_MAP, data)
     );
+    this.homey.on('unload', () => {
+      this.log('[onUnload] saving expose map');
+      this.#exposed.save();
+    });
   }
 
   async initializeWebApi() {
