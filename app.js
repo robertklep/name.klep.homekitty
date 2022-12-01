@@ -417,13 +417,15 @@ module.exports = class HomeKitty extends Homey.App {
     async exposeDevice(id) {
       const device = await this.getDeviceById(id);
 
-      if (! await this.addDeviceToHomeKit(device)) {
-        throw Error('unable to add device');
-      }
-
       // update exposure state
       this.#exposed.set(id, true);
       this.#exposed.save();
+
+      if (! await this.addDeviceToHomeKit(device)) {
+        this.#exposed.set(id, false);
+        this.#exposed.save();
+        throw Error('unable to add device');
+      }
 
       // done
       return 'ok';
