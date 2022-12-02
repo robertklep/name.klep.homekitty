@@ -33,7 +33,7 @@ module.exports = class HomeKitty extends Homey.App {
 
   async onInit() {
     this.log('');
-    this.log('🐈🏠 ✧･ﾟ: *✧･ﾟ Welcome to HomeKitty ﾟ･✧*:･ﾟ✧ 🏠🐈');
+    this.log('🐈🏠 ✧･ﾟ: *✧･ﾟWᴇʟᴄᴏᴍᴇ ᴛᴏ HᴏᴍᴇKɪᴛᴛʏ ﾟ･✧*:･ﾟ✧ 🏠🐈');
     this.log('');
 
     // initialize API handlers
