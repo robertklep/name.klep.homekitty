@@ -34,7 +34,7 @@ module.exports = class FlowButtonDevice extends VirtualDevice {
       // turn the switch on
       await this.setCapabilityValue('button', true);
       // trigger the flow
-      await this.#onButtonPressTrigger.trigger(this).catch(this.error);
+      await this.triggerFlow();
       // turn the switch off again after 300ms
       turnOff();
     }).onGet(() => false);
@@ -42,10 +42,17 @@ module.exports = class FlowButtonDevice extends VirtualDevice {
     // call when the button is pressed on the Homey side
     this.registerCapabilityListener('button', async value => {
       characteristic.updateValue(true);
+      // trigger the flow
+      await this.triggerFlow();
+      // turn the switch off again after 300ms
       turnOff();
     });
 
     // add to bridge
     await this.addToBridge();
+  }
+
+  async triggerFlow() {
+    await this.#onButtonPressTrigger.trigger(this).catch(this.error);
   }
 }
