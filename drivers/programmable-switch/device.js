@@ -19,6 +19,9 @@ module.exports = class ProgrammableSwitchDevice extends VirtualDevice {
     const service        = accessory.addService(Service.StatelessProgrammableSwitch);
     const characteristic = service.getCharacteristic(Characteristic.ProgrammableSwitchEvent);
 
+    // only support single press for now
+    characteristic.setProps({ validValues : [ SINGLE_PRESS ] });
+
     // call when the button is pressed on the Homey side
     this.registerCapabilityListener('button', async value => {
       characteristic.updateValue(SINGLE_PRESS);
