@@ -293,7 +293,7 @@ module.exports = class HomeKitty extends Homey.App {
       return true;
     }
     this.#exposed.set(device.id, false);
-    this.log(`${ prefix } unable to map 🥺`);
+    this.log(`${ prefix } unable to map 🥺 (class=${ device.class } virtualClass=${ device.virtualClass } capabilities=${ device.capabilities })`);
     return false;
   }
 
