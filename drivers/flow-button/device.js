@@ -1,11 +1,11 @@
 const VirtualDevice               = require('../virtual-device');
 const { Service, Characteristic } = require('../../modules/hap-nodejs');
 
-module.exports = class VirtualButtonDevice extends VirtualDevice {
+module.exports = class FlowButtonDevice extends VirtualDevice {
   #onButtonPressTrigger = null;
 
   async onInit() {
-    this.log('VirtualButtonDevice has been initialized');
+    this.log('FlowButtonDevice has been initialized');
     this.#onButtonPressTrigger = this.homey.flow.getDeviceTriggerCard('buttonpress');
 
     await this.setUnavailable();
