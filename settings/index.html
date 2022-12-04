@@ -20,7 +20,13 @@
       }
 
       #homekitty .tabs li {
-        font-size: var(--homey-font-size-default);
+        font-size: var(--homey-font-size-small);
+      }
+
+      .checkbox-grid {
+        display:               grid;
+        grid-auto-flow:        row;
+        grid-template-columns: auto auto auto;
       }
 
       /* prevent FOUC */
@@ -42,6 +48,10 @@
         background-color: #23d160 !important;
       }
 
+      .homey-form-checkbox {
+        font-size: var(--homey-font-size-small) !important;
+      }
+
       /* use Homey colors */
       .message-header {
         background-image: var(--homey-interactive-gradient-blue) !important;
@@ -56,9 +66,7 @@
       <div class="tabs is-centered is-boxed">
         <ul>
           <li v-bind:class="isActive('devices')">
-            <a @click="setPage('devices')" data-i18n="tabs.devices">
-              Devices
-            </a>
+            <a @click="setPage('devices')" data-i18n="tabs.devices">Devices</a>
           </li>
           <li v-bind:class="isActive('settings')">
             <a @click="setPage('settings')" data-i18n="tabs.settings">Settings</a>
@@ -73,34 +81,59 @@
       <div class='p-2' v-if="currentPage == 'devices'">
         <div class='block'>
           <input v-model='search' @keyup='onKeyUp' class='homey-form-input is-link is-small' type='text' placeholder='Filter...'>
+          <div class='checkbox-grid'>
+            <label class="homey-form-checkbox">
+              <input v-model='filters.exposed' @change='onChangeFilter' class="homey-form-checkbox-input" type="checkbox" name="checkbox-example"/>
+              <span class="homey-form-checkbox-checkmark"></span>
+              <span class="homey-form-checkbox-text">Exposed</span>
+            </label>
+            <label class="homey-form-checkbox">
+              <input v-model='filters.unexposed' @change='onChangeFilter' class="homey-form-checkbox-input" type="checkbox" name="checkbox-example"/>
+              <span class="homey-form-checkbox-checkmark"></span>
+              <span class="homey-form-checkbox-text">Unexposed</span>
+            </label>
+            <label class="homey-form-checkbox">
+              <input v-model='filters.unsupported' @change='onChangeFilter' class="homey-form-checkbox-input" type="checkbox" name="checkbox-example"/>
+              <span class="homey-form-checkbox-checkmark"></span>
+              <span class="homey-form-checkbox-text">Unsupported</span>
+            </label>
+          </div>
         </div>
         <div class='columns is-multiline is-tablet'>
-          <div v-for='device in filteredItems' :key='device.id' class='column is-half-tablet is-one-third-desktop'>
-            <div class='card'>
-              <div class='card-content'>
-                <div class='media'>
-                  <div class='media-left'>
-                    <figure class='image is-48x48'>
-                      <img :src="device.iconObj.url" v-if='!! device.iconObj' style="height:48px" :title="'id = ' + device.id + ', class = ' + device.class"/>
-                    </figure>
-                  </div>
-                  <div class='media-content'>
-                    <p class='title    is-size-4 is-size-5-mobile'>{{ device.name }}</p>
-                    <p class='subtitle is-size-6 is-size-6-mobile'>{{ device.zoneName || "&nbsp;" }}</p>
+          <div v-for='device in filteredItems' :key='device.id'>
+            <div class='column is-half-tablet is-one-third-desktop' v-if='
+            (filters.unsupported && (! device.available || ! device.homekitty.supported))
+            ||
+            (filters.exposed   && device.homekitty.supported && device.available && device.homekitty.exposed)
+            ||
+            (filters.unexposed && device.homekitty.supported && device.available && ! device.homekitty.exposed)
+            '>
+              <div class='card'>
+                <div class='card-content'>
+                  <div class='media'>
+                    <div class='media-left'>
+                      <figure class='image is-48x48'>
+                        <img :src="device.iconObj?.url || 'mock-icon.png'" style="height:48px" :title="'id = ' + device.id + ', class = ' + device.class"/>
+                      </figure>
+                    </div>
+                    <div class='media-content'>
+                      <p class='title    is-size-4 is-size-5-mobile'>{{ device.name }}</p>
+                      <p class='subtitle is-size-6 is-size-6-mobile'>{{ device.zoneName || "&nbsp;" }}</p>
+                    </div>
                   </div>
                 </div>
-              </div>
-              <div class='card-footer'>
-                <div class='card-footer-item'>
-                  <div v-if='! device.available'>
-                    <button class='homey-button-disabled is-disabled is-size-6 is-size-7-mobile' data-i18n='device.unavailable'>Unavailable 😬</button>
-                  </div>
-                  <div v-else-if='! device.homekitty.supported'>
-                    <button class='homey-button-disabled is-disabled is-size-6 is-size-7-mobile' data-i18n='device.unsupported'>Device unsupported by HomeKitty 🥺</button>
-                  </div>
-                  <div v-else>
-                    <a v-if="device.homekitty.exposed"   @click="unexposeDevice(device)" class="homey-button-primary is-danger  is-size-6 is-size-7-mobile"  data-i18n="device.delete">Delete from HomeKit</a>
-                    <a v-else                            @click="exposeDevice(device)"   class="homey-button-primary is-success is-size-6 is-size-7-mobile" data-i18n="device.add">Add to HomeKit</a>
+                <div class='card-footer'>
+                  <div class='card-footer-item'>
+                    <div v-if='! device.available'>
+                      <button class='homey-button-disabled is-disabled is-size-6 is-size-7-mobile' data-i18n='device.unavailable'>Unavailable 😬</button>
+                    </div>
+                    <div v-else-if='! device.homekitty.supported'>
+                      <button class='homey-button-disabled is-disabled is-size-6 is-size-7-mobile' data-i18n='device.unsupported'>Device unsupported by HomeKitty 🥺</button>
+                    </div>
+                    <div v-else>
+                      <a v-if="device.homekitty.exposed"   @click="unexposeDevice(device)" class="homey-button-primary is-danger  is-size-6 is-size-7-mobile"  data-i18n="device.delete">Delete from HomeKit</a>
+                      <a v-else                            @click="exposeDevice(device)"   class="homey-button-primary is-success is-size-6 is-size-7-mobile" data-i18n="device.add">Add to HomeKit</a>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -204,11 +237,15 @@
         bridgeIdentifier:           null,
         newBridgeIdentifier:        null,
         hasBridgeIdentifierChanged: false,
+        filters:                    {},
         // methods
         onKeyUp(ev) {
           if (ev.key === 'Escape') {
             this.search = '';
           }
+        },
+        async onChangeFilter(ev) {
+          await this.setSetting('Settings.Filters', this.filters);
         },
         getSetting(name) {
           return new Promise((resolve, reject) => {
@@ -304,8 +341,13 @@
         // called from @vue:mounted event handler on #app
         async mounted() {
           this.bridgeIdentifier    = await this.getSetting('Bridge.Identifier');
+          this.filters             = await this.getSetting('Settings.Filters') || {
+            exposed:     true,
+            unexposed:   true,
+            unsupported: false
+          };
           this.newBridgeIdentifier = this.bridgeIdentifier;
-          await this.getDevices();
+          const devices            = await this.getDevices();
           // watch for changes in exposed state, then reload devices
           Homey.on('settings.set', async (key) => {
             if (key === 'HomeKit.Exposed') {
@@ -314,7 +356,7 @@
           });
         },
         get filteredItems() {
-          var options = {
+          const options = {
             keys:               [ 'name', 'zoneName', 'class' ],
             shouldSort:         true,
             findAllMatches:     true,
@@ -324,7 +366,7 @@
             maxPatternLength:   32,
             minMatchCharLength: 2
           };
-          var fuse = new Fuse(this.devices, options);
+          const fuse = new Fuse(this.devices, options);
           if (this.search.length > 2) {
             return fuse.search(this.search);
           } else {
