@@ -164,6 +164,7 @@ module.exports = class HomeKitty extends Homey.App {
     this.#bridge.getService(Service.AccessoryInformation)
                 .setCharacteristic(Characteristic.Manufacturer,     'Athom')
                 .setCharacteristic(Characteristic.Model,            'Homey')
+                .setCharacteristic(Characteristic.SerialNumber,     uuid.generate(identifier))
                 .setCharacteristic(Characteristic.FirmwareRevision, Constants.BRIDGE_FIRMWARE_REVISION);
 
     // Listen for bridge identification events
