@@ -15,6 +15,11 @@
         padding: 0 !important;
       }
 
+      #homekitty .tabs {
+        margin-left:   0 !important;
+        margin-bottom: 0 !important;
+      }
+
       #homekitty .tabs > ul:first-child {
         margin-left: 0 !important;
       }
@@ -48,8 +53,14 @@
         background-color: #23d160 !important;
       }
 
-      .homey-form-checkbox {
+      .homey-form-checkbox, .homey-form-input {
         font-size: var(--homey-font-size-small) !important;
+        margin: 0.25em 0 !important;
+      }
+
+      .homey-form-input {
+        line-height: 1 !important;
+        padding:     0.5em !important;
       }
 
       .column {
@@ -80,7 +91,7 @@
     </style>
   </head>
   <body class='homekitty'>
-    <div id='homekitty' v-cloak clas-s='box' @vue:mounted='mounted'>
+    <div id='homekitty' v-cloak @vue:mounted='mounted'>
 
       <!-- Tabs -->
       <div class="tabs is-centered is-boxed">
@@ -99,7 +110,7 @@
 
       <!-- DEVICES PAGE -->
       <div class='p-2' v-if="currentPage == 'devices'">
-        <div class='block'>
+        <div class='block mb-3'>
           <input v-model='search' @keyup='onKeyUp' class='homey-form-input is-link is-small' type='text' placeholder='Filter...'>
           <div class='checkbox-grid'>
             <label class="homey-form-checkbox">
