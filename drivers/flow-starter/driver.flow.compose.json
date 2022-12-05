@@ -3,7 +3,8 @@
     {
       "id": "buttonpress",
       "title": {
-        "en": "Button pressed"
+        "en": "The button was pressed",
+        "nl": "De knop is ingedrukt"
       }
     }
   ]
