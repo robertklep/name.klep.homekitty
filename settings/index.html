@@ -86,13 +86,13 @@
       <div class="tabs is-centered is-boxed">
         <ul>
           <li v-bind:class="isActive('devices')">
-            <a @click="setPage('devices')" data-i18n="tabs.devices">Devices</a>
+            <a @click="setPage('devices')" data-i18n="settings.tabs.devices">Devices</a>
           </li>
           <li v-bind:class="isActive('settings')">
-            <a @click="setPage('settings')" data-i18n="tabs.settings">Settings</a>
+            <a @click="setPage('settings')" data-i18n="settings.tabs.settings">Settings</a>
           </li>
           <li v-bind:class="isActive('qrcode')">
-            <a @click="setPage('qrcode')" data-i18n="tabs.qrcode">QR Code</a>
+            <a @click="setPage('qrcode')" data-i18n="settings.tabs.qrcode">QR Code</a>
           </li>
         </ul>
       </div>
@@ -105,17 +105,17 @@
             <label class="homey-form-checkbox">
               <input v-model='filters.exposed' @change='onChangeFilter' class="homey-form-checkbox-input" type="checkbox" name="checkbox-example"/>
               <span class="homey-form-checkbox-checkmark"></span>
-              <span class="homey-form-checkbox-text">Exposed</span>
+              <span class="homey-form-checkbox-text" data-i18n="settings.filters.exposed">Added</span>
             </label>
             <label class="homey-form-checkbox">
               <input v-model='filters.unexposed' @change='onChangeFilter' class="homey-form-checkbox-input" type="checkbox" name="checkbox-example"/>
               <span class="homey-form-checkbox-checkmark"></span>
-              <span class="homey-form-checkbox-text">Unexposed</span>
+              <span class="homey-form-checkbox-text" data-i18n="settings.filters.unexposed">Not Added</span>
             </label>
             <label class="homey-form-checkbox">
               <input v-model='filters.unsupported' @change='onChangeFilter' class="homey-form-checkbox-input" type="checkbox" name="checkbox-example"/>
               <span class="homey-form-checkbox-checkmark"></span>
-              <span class="homey-form-checkbox-text">Unsupported</span>
+              <span class="homey-form-checkbox-text" data-i18n="settings.filters.unsupported">Unsupported</span>
             </label>
           </div>
         </div>
@@ -138,14 +138,14 @@
               <div class='card-footer'>
                 <div class='card-footer-item'>
                   <div v-if='! device.available'>
-                    <button class='homey-button-disabled is-disabled is-size-6 is-size-7-mobile' data-i18n='device.unavailable'>Unavailable 😬</button>
+                    <button class='homey-button-disabled is-disabled is-size-6 is-size-7-mobile' data-i18n='settings.device.unavailable'>Unavailable 😬</button>
                   </div>
                   <div v-else-if='! device.homekitty.supported'>
-                    <button class='homey-button-disabled is-disabled is-size-6 is-size-7-mobile' data-i18n='device.unsupported'>Device unsupported by HomeKitty 🥺</button>
+                    <button class='homey-button-disabled is-disabled is-size-6 is-size-7-mobile' data-i18n='settings.device.unsupported'>Device unsupported by HomeKitty 🥺</button>
                   </div>
                   <div v-else>
-                    <a v-if="device.homekitty.exposed"   @click="unexposeDevice(device)" class="homey-button-primary is-danger  is-size-6 is-size-7-mobile"  data-i18n="device.delete">Delete from HomeKit</a>
-                    <a v-else                            @click="exposeDevice(device)"   class="homey-button-primary is-success is-size-6 is-size-7-mobile" data-i18n="device.add">Add to HomeKit</a>
+                    <a v-if="device.homekitty.exposed"   @click="unexposeDevice(device)" class="homey-button-primary is-danger  is-size-6 is-size-7-mobile"  data-i18n="settings.device.delete">Delete from HomeKit</a>
+                    <a v-else                            @click="exposeDevice(device)"   class="homey-button-primary is-success is-size-6 is-size-7-mobile" data-i18n="settings.device.add">Add to HomeKit</a>
                   </div>
                 </div>
               </div>
@@ -157,25 +157,22 @@
       <!-- SETTINGS PAGE -->
       <div class='p-2' v-if="currentPage == 'settings'">
         <article class='message is-link is-normal' v-if='bridgeIdentifier'>
-          <div class='message-header has-text-centered'>
+          <div class='message-header has-text-centered' data-i18n='settings.identifier.title'>
             Change Bridge Identifier
           </div>
           <div class='message-body'>
-            <p>
-              If you want to run multiple instances of HomeKitty in your
-              network, for instance if you have two (or more) Homey's, each
-              instance should have a unique bridge identifier.
+            <p data-i18n='settings.identifier.para-1'>
+              If you want to run multiple instances of HomeKitty in your network, for instance if you have two (or more) Homey's, each instance should have a unique bridge identifier.
             </p>
             <p>
-              <b>
-              After changing this setting, restart the HomeKitty app for the
-              change to take effect.
+              <b data-i18n='settings.identifier.para-2'>
+                After changing this setting, restart the HomeKitty app for the change to take effect.
               </b>
             </p>
             <p>
-              <b style='color:red'>Change this only if you have a reason to do
-                so, otherwise you may lose your current HomeKit
-                configuration.</b>
+              <b style='color:red' data-i18n='settings.identifier.para-3'>
+                Change this only if you have a reason to do so, otherwise you may lose your current HomeKit configuration.
+              </b>
             </p>
             <div class='is-mobile' style='margin-top: 0.75rem'>
               <div class='field is-horizontal'>
@@ -183,7 +180,7 @@
                   <label class='label'>Bridge Identifier:</label>
                 </div>
                 <div class='field-body'>
-                  <div class='field is-horizontal is-grouped'>
+                  <div class='field'>
                     <p class='control'>
                       <input class='homey-form-input' minlength=3 type='text' v-model.trim='newBridgeIdentifier'>
                     </p>
@@ -196,8 +193,11 @@
                           "is-disabled":     ! isValidIdentifier(),
                           "is-pulled-right": true,
                         }'
+                        style     = 'margin-top: 0.5em'
+                        data-i18n = 'settings.identifier.button'
                       >Change</button>
                     </p>
+                    <p class='is-clearfix'></p>
                   </div>
                 </div>
               </div>
@@ -209,12 +209,13 @@
             🚨 HomeKitty Reset 🚨
           </div>
           <div class='message-body'>
-            <p>
-              If you have problems trying to add Homey to HomeKit, for instance, if HomeKit can't find the "Homey" accessory,
-              you can try and clear the HomeKit storage. Make sure to restart the app afterwards!
+            <p data-i18n='settings.reset.para-1'>
+              If you have problems trying to add Homey to HomeKit, for instance, if HomeKit can't find the HomeKitty bridge, you can perform a full reset. Make sure to restart the app afterwards!
             </p>
-            <p style='margin-top: 0.75rem'>
-              <a @click="clearStorage()" class='button is-danger' data-i18n="app.clearStorage">Clear HomeKit storage and start over.</a>
+            <p style='margin: 0.75rem'>
+              <a @click="clearStorage()" class='button homey-button is-danger' data-i18n="settings.reset.button">
+                Reset HomeKitty and start over.
+              </a>
             </p>
           </div>
         </article>

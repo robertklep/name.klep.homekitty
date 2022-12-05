@@ -1,15 +1,33 @@
 {
-  "tabs": {
-    "devices": "Devices",
-    "settings": "Settings",
-    "qrcode" : "QR Code"
-  },
-  "device": {
-    "add": "Add to HomeKit",
-    "delete": "Delete from HomeKit",
-    "unknown": "Unknown",
-    "unsupported" : "Unsupported by HomeKitty 🥺",
-    "unavailable" : "Unavailable 😬"
+  "settings" : {
+    "tabs": {
+      "devices": "Devices",
+      "settings": "Settings",
+      "qrcode" : "QR Code"
+    },
+    "filters" : {
+      "exposed" : "Added",
+      "unexposed" : "Not Added",
+      "unsupported" : "Unsupported"
+    },
+    "device": {
+      "add": "Add to HomeKit",
+      "delete": "Delete from HomeKit",
+      "unknown": "Unknown",
+      "unsupported" : "Unsupported by HomeKitty 🥺",
+      "unavailable" : "Unavailable 😬"
+    },
+    "identifier" : {
+      "title" : "Change Bridge Identifier",
+      "para-1" : "If you want to run multiple instances of HomeKitty in your network, for instance if you have two (or more) Homey's, each instance should have a unique bridge identifier.",
+      "para-2" : "After changing this setting, restart the HomeKitty app for the change to take effect.",
+      "para-3" : "Change this only if you have a reason to do so, otherwise you may lose your current HomeKit configuration.",
+      "button" : "Change"
+    },
+    "reset" : {
+      "para-1" : "If you have problems trying to add Homey to HomeKit, for instance, if HomeKit can't find the HomeKitty bridge, you can perform a full reset. Make sure to restart the app afterwards!",
+      "button" : "Reset HomeKitty and start over."
+    }
   },
   "errors" : {
     "apirequest" : "API request failed 😭"
