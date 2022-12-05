@@ -1,6 +1,6 @@
 {
   "name": "name.klep.homekitty",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "main": "app.js",
   "devDependencies": {
     "@tsconfig/node12": "^1.0.11",
