@@ -34,7 +34,7 @@
 
       /* override some styles */
       [class*="homey-button"] {
-        padding:       0.5em 1em !important;
+        padding:       0.25em 1em !important;
         border-radius: 0.5em !important;
       }
 
@@ -50,6 +50,26 @@
 
       .homey-form-checkbox {
         font-size: var(--homey-font-size-small) !important;
+      }
+
+      .column {
+        padding: 0.25em 0.75em;
+      }
+
+      .card {
+        border: 1px solid #eee;
+      }
+
+      .card-content {
+        padding: 0.75em;
+      }
+
+      .card-footer {
+        border-top: none;
+      }
+
+      .card-footer-item {
+        padding: 0.25em 0.75em 0.5em;
       }
 
       /* use Homey colors */
@@ -100,40 +120,32 @@
           </div>
         </div>
         <div class='columns is-multiline is-tablet'>
-          <div v-for='device in filteredItems' :key='device.id'>
-            <div class='column is-half-tablet is-one-third-desktop' v-if='
-            (filters.unsupported && (! device.available || ! device.homekitty.supported))
-            ||
-            (filters.exposed   && device.homekitty.supported && device.available && device.homekitty.exposed)
-            ||
-            (filters.unexposed && device.homekitty.supported && device.available && ! device.homekitty.exposed)
-            '>
-              <div class='card'>
-                <div class='card-content'>
-                  <div class='media'>
-                    <div class='media-left'>
-                      <figure class='image is-48x48'>
-                        <img :src="device.iconObj?.url || 'mock-icon.png'" style="height:48px" :title="'id = ' + device.id + ', class = ' + device.class"/>
-                      </figure>
-                    </div>
-                    <div class='media-content'>
-                      <p class='title    is-size-4 is-size-5-mobile'>{{ device.name }}</p>
-                      <p class='subtitle is-size-6 is-size-6-mobile'>{{ device.zoneName || "&nbsp;" }}</p>
-                    </div>
+          <div v-for='device in filteredItems' :key='device.id' class='column is-half-tablet is-one-third-desktop'>
+            <div class='card'>
+              <div class='card-content'>
+                <div class='media'>
+                  <div class='media-left'>
+                    <figure class='image is-48x48'>
+                      <img :src="device.iconObj?.url || 'mock-icon.png'" style="height:48px" :title="'id = ' + device.id + ', class = ' + device.class"/>
+                    </figure>
+                  </div>
+                  <div class='media-content'>
+                    <p class='title    is-size-4 is-size-5-mobile'>{{ device.name }}</p>
+                    <p class='subtitle is-size-6 is-size-6-mobile'>{{ device.zoneName || "&nbsp;" }}</p>
                   </div>
                 </div>
-                <div class='card-footer'>
-                  <div class='card-footer-item'>
-                    <div v-if='! device.available'>
-                      <button class='homey-button-disabled is-disabled is-size-6 is-size-7-mobile' data-i18n='device.unavailable'>Unavailable 😬</button>
-                    </div>
-                    <div v-else-if='! device.homekitty.supported'>
-                      <button class='homey-button-disabled is-disabled is-size-6 is-size-7-mobile' data-i18n='device.unsupported'>Device unsupported by HomeKitty 🥺</button>
-                    </div>
-                    <div v-else>
-                      <a v-if="device.homekitty.exposed"   @click="unexposeDevice(device)" class="homey-button-primary is-danger  is-size-6 is-size-7-mobile"  data-i18n="device.delete">Delete from HomeKit</a>
-                      <a v-else                            @click="exposeDevice(device)"   class="homey-button-primary is-success is-size-6 is-size-7-mobile" data-i18n="device.add">Add to HomeKit</a>
-                    </div>
+              </div>
+              <div class='card-footer'>
+                <div class='card-footer-item'>
+                  <div v-if='! device.available'>
+                    <button class='homey-button-disabled is-disabled is-size-6 is-size-7-mobile' data-i18n='device.unavailable'>Unavailable 😬</button>
+                  </div>
+                  <div v-else-if='! device.homekitty.supported'>
+                    <button class='homey-button-disabled is-disabled is-size-6 is-size-7-mobile' data-i18n='device.unsupported'>Device unsupported by HomeKitty 🥺</button>
+                  </div>
+                  <div v-else>
+                    <a v-if="device.homekitty.exposed"   @click="unexposeDevice(device)" class="homey-button-primary is-danger  is-size-6 is-size-7-mobile"  data-i18n="device.delete">Delete from HomeKit</a>
+                    <a v-else                            @click="exposeDevice(device)"   class="homey-button-primary is-success is-size-6 is-size-7-mobile" data-i18n="device.add">Add to HomeKit</a>
                   </div>
                 </div>
               </div>
@@ -356,6 +368,14 @@
           });
         },
         get filteredItems() {
+          const filter = device => {
+            if (device.available && device.homekitty.supported) {
+              if (this.filters.exposed   &&   device.homekitty.exposed) return true;
+              if (this.filters.unexposed && ! device.homekitty.exposed) return true;
+              return false;
+            }
+            return this.filters.unsupported;
+          };
           const options = {
             keys:               [ 'name', 'zoneName', 'class' ],
             shouldSort:         true,
@@ -368,9 +388,9 @@
           };
           const fuse = new Fuse(this.devices, options);
           if (this.search.length > 2) {
-            return fuse.search(this.search);
+            return fuse.search(this.search).filter(filter);
           } else {
-            return this.devices;
+            return this.devices.filter ? this.devices.filter(filter) : this.devices;
           }
         },
       }).mount('#homekitty');
