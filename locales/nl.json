@@ -1,16 +1,33 @@
 {
-
-  "tabs": {
-    "devices": "Apparaten",
-    "settings": "Instellingen",
-    "qrcode" : "QR Code"
-  },
-  "device": {
-    "add":         "Toevoegen aan HomeKit",
-    "delete":      "Verwijderen uit HomeKit",
-    "unknown":     "Onbekend",
-    "unsupported": "Niet ondersteund door HomeKitty 🥺",
-    "unavailable": "Niet beschikbaar 😬"
+  "settings" : {
+    "tabs": {
+      "devices": "Apparaten",
+      "settings": "Instellingen",
+      "qrcode" : "QR Code"
+    },
+    "filters" : {
+      "exposed" : "Actief",
+      "unexposed" : "Niet Actief",
+      "unsupported" : "Geen Support"
+    },
+    "device": {
+      "add":         "Toevoegen aan HomeKit",
+      "delete":      "Verwijderen uit HomeKit",
+      "unknown":     "Onbekend",
+      "unsupported": "Niet ondersteund door HomeKitty 🥺",
+      "unavailable": "Niet beschikbaar 😬"
+    },
+    "identifier" : {
+      "title" : "Verander Bridge Identifier",
+      "para-1" : "Als je meerdere instanties van HomeKitty in je netwerk wilt draaien, bijvoorbeeld als je meerdere Homey's hebt, dan moet elke instantie een unieke Bridge Identifier hebben.",
+      "para-2" : "Nadat deze setting is aangepast moet je de HomeKitty app herstarten om de verandering door te voeren.",
+      "para-3" : "Verander deze instelling alleen als je een goede reden hebt, anders loop je de kans dat je je huidige HomeKit configuratie kwijt raakt.",
+      "button" : "Verander"
+    },
+    "reset" : {
+      "para-1" : "Als je problemen hebt met het toevoegen van Homey aan HomeKit, bijvoorbeeld als iOS de HomeKitty bridge niet kan vinden, dan kun je een volledige reset uitvoeren. Dit vereist een herstart van de app!",
+      "button" : "Reset HomeKitty en begin opnieuw."
+    }
   },
   "errors" : {
     "apirequest" : "API request mislukt 😭"

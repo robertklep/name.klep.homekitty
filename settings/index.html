@@ -20,7 +20,13 @@
       }
 
       #homekitty .tabs li {
-        font-size: var(--homey-font-size-default);
+        font-size: var(--homey-font-size-small);
+      }
+
+      .checkbox-grid {
+        display:               grid;
+        grid-auto-flow:        row;
+        grid-template-columns: auto auto auto;
       }
 
       /* prevent FOUC */
@@ -28,7 +34,7 @@
 
       /* override some styles */
       [class*="homey-button"] {
-        padding:       0.5em 1em !important;
+        padding:       0.25em 1em !important;
         border-radius: 0.5em !important;
       }
 
@@ -40,6 +46,30 @@
       [class*="homey-button"].is-success {
         background-image: none;
         background-color: #23d160 !important;
+      }
+
+      .homey-form-checkbox {
+        font-size: var(--homey-font-size-small) !important;
+      }
+
+      .column {
+        padding: 0.25em 0.75em;
+      }
+
+      .card {
+        border: 1px solid #eee;
+      }
+
+      .card-content {
+        padding: 0.75em;
+      }
+
+      .card-footer {
+        border-top: none;
+      }
+
+      .card-footer-item {
+        padding: 0.25em 0.75em 0.5em;
       }
 
       /* use Homey colors */
@@ -56,15 +86,13 @@
       <div class="tabs is-centered is-boxed">
         <ul>
           <li v-bind:class="isActive('devices')">
-            <a @click="setPage('devices')" data-i18n="tabs.devices">
-              Devices
-            </a>
+            <a @click="setPage('devices')" data-i18n="settings.tabs.devices">Devices</a>
           </li>
           <li v-bind:class="isActive('settings')">
-            <a @click="setPage('settings')" data-i18n="tabs.settings">Settings</a>
+            <a @click="setPage('settings')" data-i18n="settings.tabs.settings">Settings</a>
           </li>
           <li v-bind:class="isActive('qrcode')">
-            <a @click="setPage('qrcode')" data-i18n="tabs.qrcode">QR Code</a>
+            <a @click="setPage('qrcode')" data-i18n="settings.tabs.qrcode">QR Code</a>
           </li>
         </ul>
       </div>
@@ -73,6 +101,23 @@
       <div class='p-2' v-if="currentPage == 'devices'">
         <div class='block'>
           <input v-model='search' @keyup='onKeyUp' class='homey-form-input is-link is-small' type='text' placeholder='Filter...'>
+          <div class='checkbox-grid'>
+            <label class="homey-form-checkbox">
+              <input v-model='filters.exposed' @change='onChangeFilter' class="homey-form-checkbox-input" type="checkbox" name="checkbox-example"/>
+              <span class="homey-form-checkbox-checkmark"></span>
+              <span class="homey-form-checkbox-text" data-i18n="settings.filters.exposed">Added</span>
+            </label>
+            <label class="homey-form-checkbox">
+              <input v-model='filters.unexposed' @change='onChangeFilter' class="homey-form-checkbox-input" type="checkbox" name="checkbox-example"/>
+              <span class="homey-form-checkbox-checkmark"></span>
+              <span class="homey-form-checkbox-text" data-i18n="settings.filters.unexposed">Not Added</span>
+            </label>
+            <label class="homey-form-checkbox">
+              <input v-model='filters.unsupported' @change='onChangeFilter' class="homey-form-checkbox-input" type="checkbox" name="checkbox-example"/>
+              <span class="homey-form-checkbox-checkmark"></span>
+              <span class="homey-form-checkbox-text" data-i18n="settings.filters.unsupported">Unsupported</span>
+            </label>
+          </div>
         </div>
         <div class='columns is-multiline is-tablet'>
           <div v-for='device in filteredItems' :key='device.id' class='column is-half-tablet is-one-third-desktop'>
@@ -81,7 +126,7 @@
                 <div class='media'>
                   <div class='media-left'>
                     <figure class='image is-48x48'>
-                      <img :src="device.iconObj.url" v-if='!! device.iconObj' style="height:48px" :title="'id = ' + device.id + ', class = ' + device.class"/>
+                      <img :src="device.iconObj?.url || 'mock-icon.png'" style="height:48px" :title="'id = ' + device.id + ', class = ' + device.class"/>
                     </figure>
                   </div>
                   <div class='media-content'>
@@ -93,14 +138,14 @@
               <div class='card-footer'>
                 <div class='card-footer-item'>
                   <div v-if='! device.available'>
-                    <button class='homey-button-disabled is-disabled is-size-6 is-size-7-mobile' data-i18n='device.unavailable'>Unavailable 😬</button>
+                    <button class='homey-button-disabled is-disabled is-size-6 is-size-7-mobile' data-i18n='settings.device.unavailable'>Unavailable 😬</button>
                   </div>
                   <div v-else-if='! device.homekitty.supported'>
-                    <button class='homey-button-disabled is-disabled is-size-6 is-size-7-mobile' data-i18n='device.unsupported'>Device unsupported by HomeKitty 🥺</button>
+                    <button class='homey-button-disabled is-disabled is-size-6 is-size-7-mobile' data-i18n='settings.device.unsupported'>Device unsupported by HomeKitty 🥺</button>
                   </div>
                   <div v-else>
-                    <a v-if="device.homekitty.exposed"   @click="unexposeDevice(device)" class="homey-button-primary is-danger  is-size-6 is-size-7-mobile"  data-i18n="device.delete">Delete from HomeKit</a>
-                    <a v-else                            @click="exposeDevice(device)"   class="homey-button-primary is-success is-size-6 is-size-7-mobile" data-i18n="device.add">Add to HomeKit</a>
+                    <a v-if="device.homekitty.exposed"   @click="unexposeDevice(device)" class="homey-button-primary is-danger  is-size-6 is-size-7-mobile"  data-i18n="settings.device.delete">Delete from HomeKit</a>
+                    <a v-else                            @click="exposeDevice(device)"   class="homey-button-primary is-success is-size-6 is-size-7-mobile" data-i18n="settings.device.add">Add to HomeKit</a>
                   </div>
                 </div>
               </div>
@@ -112,25 +157,22 @@
       <!-- SETTINGS PAGE -->
       <div class='p-2' v-if="currentPage == 'settings'">
         <article class='message is-link is-normal' v-if='bridgeIdentifier'>
-          <div class='message-header has-text-centered'>
+          <div class='message-header has-text-centered' data-i18n='settings.identifier.title'>
             Change Bridge Identifier
           </div>
           <div class='message-body'>
-            <p>
-              If you want to run multiple instances of HomeKitty in your
-              network, for instance if you have two (or more) Homey's, each
-              instance should have a unique bridge identifier.
+            <p data-i18n='settings.identifier.para-1'>
+              If you want to run multiple instances of HomeKitty in your network, for instance if you have two (or more) Homey's, each instance should have a unique bridge identifier.
             </p>
             <p>
-              <b>
-              After changing this setting, restart the HomeKitty app for the
-              change to take effect.
+              <b data-i18n='settings.identifier.para-2'>
+                After changing this setting, restart the HomeKitty app for the change to take effect.
               </b>
             </p>
             <p>
-              <b style='color:red'>Change this only if you have a reason to do
-                so, otherwise you may lose your current HomeKit
-                configuration.</b>
+              <b style='color:red' data-i18n='settings.identifier.para-3'>
+                Change this only if you have a reason to do so, otherwise you may lose your current HomeKit configuration.
+              </b>
             </p>
             <div class='is-mobile' style='margin-top: 0.75rem'>
               <div class='field is-horizontal'>
@@ -138,7 +180,7 @@
                   <label class='label'>Bridge Identifier:</label>
                 </div>
                 <div class='field-body'>
-                  <div class='field is-horizontal is-grouped'>
+                  <div class='field'>
                     <p class='control'>
                       <input class='homey-form-input' minlength=3 type='text' v-model.trim='newBridgeIdentifier'>
                     </p>
@@ -151,8 +193,11 @@
                           "is-disabled":     ! isValidIdentifier(),
                           "is-pulled-right": true,
                         }'
+                        style     = 'margin-top: 0.5em'
+                        data-i18n = 'settings.identifier.button'
                       >Change</button>
                     </p>
+                    <p class='is-clearfix'></p>
                   </div>
                 </div>
               </div>
@@ -164,12 +209,13 @@
             🚨 HomeKitty Reset 🚨
           </div>
           <div class='message-body'>
-            <p>
-              If you have problems trying to add Homey to HomeKit, for instance, if HomeKit can't find the "Homey" accessory,
-              you can try and clear the HomeKit storage. Make sure to restart the app afterwards!
+            <p data-i18n='settings.reset.para-1'>
+              If you have problems trying to add Homey to HomeKit, for instance, if HomeKit can't find the HomeKitty bridge, you can perform a full reset. Make sure to restart the app afterwards!
             </p>
-            <p style='margin-top: 0.75rem'>
-              <a @click="clearStorage()" class='button is-danger' data-i18n="app.clearStorage">Clear HomeKit storage and start over.</a>
+            <p style='margin: 0.75rem'>
+              <a @click="clearStorage()" class='button homey-button is-danger' data-i18n="settings.reset.button">
+                Reset HomeKitty and start over.
+              </a>
             </p>
           </div>
         </article>
@@ -204,11 +250,15 @@
         bridgeIdentifier:           null,
         newBridgeIdentifier:        null,
         hasBridgeIdentifierChanged: false,
+        filters:                    {},
         // methods
         onKeyUp(ev) {
           if (ev.key === 'Escape') {
             this.search = '';
           }
+        },
+        async onChangeFilter(ev) {
+          await this.setSetting('Settings.Filters', this.filters);
         },
         getSetting(name) {
           return new Promise((resolve, reject) => {
@@ -304,8 +354,13 @@
         // called from @vue:mounted event handler on #app
         async mounted() {
           this.bridgeIdentifier    = await this.getSetting('Bridge.Identifier');
+          this.filters             = await this.getSetting('Settings.Filters') || {
+            exposed:     true,
+            unexposed:   true,
+            unsupported: false
+          };
           this.newBridgeIdentifier = this.bridgeIdentifier;
-          await this.getDevices();
+          const devices            = await this.getDevices();
           // watch for changes in exposed state, then reload devices
           Homey.on('settings.set', async (key) => {
             if (key === 'HomeKit.Exposed') {
@@ -314,7 +369,15 @@
           });
         },
         get filteredItems() {
-          var options = {
+          const filter = device => {
+            if (device.available && device.homekitty.supported) {
+              if (this.filters.exposed   &&   device.homekitty.exposed) return true;
+              if (this.filters.unexposed && ! device.homekitty.exposed) return true;
+              return false;
+            }
+            return this.filters.unsupported;
+          };
+          const options = {
             keys:               [ 'name', 'zoneName', 'class' ],
             shouldSort:         true,
             findAllMatches:     true,
@@ -324,11 +387,11 @@
             maxPatternLength:   32,
             minMatchCharLength: 2
           };
-          var fuse = new Fuse(this.devices, options);
+          const fuse = new Fuse(this.devices, options);
           if (this.search.length > 2) {
-            return fuse.search(this.search);
+            return fuse.search(this.search).filter(filter);
           } else {
-            return this.devices;
+            return this.devices.filter ? this.devices.filter(filter) : this.devices;
           }
         },
       }).mount('#homekitty');
