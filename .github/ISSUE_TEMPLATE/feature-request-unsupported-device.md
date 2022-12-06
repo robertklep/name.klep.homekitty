@@ -7,19 +7,21 @@ assignees: ''
 
 ---
 
-**Type (brand/model) of device**
+(make sure you also edit the title)
+
+### Type (brand/model) of device
 ...
 
-** Is it supported by HomeyKit? **
+### Is it supported by HomeyKit?
 Yes/No/Don't Know
 
-** Device Classes **
+### Device Classes
 (find the device [here](https://tools.developer.homey.app/tools/devices) and post its class and virtual class, if it has one)
 
 * _Class_:
 * _Virtual Class_:
 
-** Device Capabilities **
+### Device Capabilities
 (see above for where you can find these; please post ID, title and type)
 
 * ...
