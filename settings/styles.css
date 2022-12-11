@@ -91,26 +91,27 @@ body {
 }
 .homekitty div.filters {
   display: flex;
-  justify-content: space-evenly;
+  justify-content: space-between;
   align-items: center;
   border-radius: var(--hk-control-border-radius);
   background: var(--hk-control-background-color);
   font-size: var(--hk-control-font-size);
   height: 22px;
   margin-bottom: 0.5em;
-  padding: 0.125rem;
+  padding: 0.125em 0.0625em;
 }
 .homekitty div.filters label {
   width: 100%;
   height: 100%;
+  text-transform: none;
   line-height: 22px;
   font-weight: normal;
   font-style: normal;
-  font-size: inherit;
+  font-size: 80%;
   color: var(--hk-control-font-color);
   box-sizing: border-box;
-  margin: 0 0 0 0.25em;
-  padding: 0 1em;
+  margin: 0 0.125em;
+  padding: 0 2px;
   background: white;
   opacity: 0.5;
   border-radius: var(--hk-control-border-radius);
@@ -125,9 +126,6 @@ body {
 }
 .homekitty div.filters input:checked + label {
   opacity: 1;
-}
-.homekitty div.filters input:first-child + label {
-  margin-left: 0;
 }
 .homekitty i.arrow {
   font-style: normal;
@@ -234,11 +232,13 @@ body {
 }
 .homekitty .list ul li.device-card figure {
   align-self: center;
+  width: 36px;
   height: 36px;
   margin: 0;
 }
 .homekitty .list ul li.device-card figure img {
   height: inherit;
+  object-fit: contain;
 }
 .homekitty span.danger {
   color: var(--hk-danger-color) !important;

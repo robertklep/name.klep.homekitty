@@ -8,7 +8,7 @@
     <script src="fuse.min.js"></script>
     <script src='homey-settings-mock.js'></script>
     <script src='mock-setup.js?0982093849234'></script>
-    <link rel="stylesheet" href="styles.css?49FA0A8C-DD5F-4B01-A9B2-97AE8ABA5046">
+    <link rel="stylesheet" href="styles.css?49FA0A8C4B01-A9B2-97AE8ABA5046">
     <style>
       /* prevent FOUC */
       [v-cloak] { display: none }
@@ -88,10 +88,12 @@
           <input type=text placeholder='Search' autocapitalize='off' v-model='search' @keyup='onKeyUp'>
         </div>
         <div class='filters'>
-          <template v-for='filter in [ "exposed", "unexposed", "unsupported" ]'>
-            <input type='checkbox' :id='filter' :checked='!! filters[filter]' @change='filters[filter] = ! filters[filter]'>
-            <label :for='filter' :data-i18n='"settings.filters." + filter'>{{ filter }}</label>
-          </template>
+          <input type='checkbox' id='exposed' :checked='!! filters.exposed' @change='filters.exposed = ! filters.exposed'>
+          <label for='exposed' data-i18n='settings.filters.exposed'>Added</label>
+          <input type='checkbox' id='unexposed' :checked='!! filters.unexposed' @change='filters.unexposed = ! filters.unexposed'>
+          <label for='unexposed' data-i18n='settings.filters.unexposed'>Not Added</label>
+          <input type='checkbox' id='unsupported' :checked='!! filters.unsupported' @change='filters.unsupported = ! filters.unsupported'>
+          <label for='unsupported' data-i18n='settings.filters.unsupported'>Unsupported</label>
         </div>
       </header>
       <div class='list'>
@@ -207,7 +209,7 @@
             });
           },
           async getDevices() {
-            console.log('get devices');
+            console.log('getting devices');
             let devices  = await this.request('GET', '/devices');
             this.devices = Object.values(devices);
             console.log(`loaded ${ this.devices.length } devices`);
@@ -280,7 +282,8 @@
             // watch for changes in exposed state, then reload devices
             Homey.on('settings.set', async (key) => {
               if (key === 'HomeKit.Exposed') {
-                await this.getDevices();
+                // XXX: disabled for now to prevent excessive loading of device data
+                // await this.getDevices();
               }
             });
           },
