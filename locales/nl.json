@@ -1,31 +1,40 @@
 {
   "settings": {
-    "tabs": {
-      "devices": "Apparaten",
-      "settings": "Instellingen",
-      "qrcode": "QR Code"
+    "main" : {
+      "homekit-settings" : {
+        "title" : "homekit instellingen",
+        "per-device" : "Selecteer per device"
+      },
+      "new-device-defaults" : {
+        "title" : "nieuw apparaat defaults",
+        "switch" : "Publiceer naar HomeKit",
+        "description" : "Kies wat er moet gebeuren als nieuwe apparaten worden toegevoegd aan Homey."
+      },
+      "app-settings" : { 
+        "title" : "app instellingen"
+      },
+      "homekit-pairing" : {
+        "title" : "homekit pairing",
+        "description" : "Pairing code om HomeKitty aan de Home app toe te voegen."
+      }
     },
-    "filters": {
-      "exposed": "Actief",
-      "unexposed": "Niet Actief",
-      "unsupported": "Geen Support"
-    },
-    "device": {
-      "unknown-zone": "Onbekende Zone",
-      "add": "Toevoegen aan HomeKit",
-      "delete": "Verwijderen uit HomeKit",
-      "unknown": "Onbekend",
-      "unsupported": "Niet ondersteund door HomeKitty 🥺",
-      "unavailable": "Niet beschikbaar 😬"
+    "devices" : {
+      "header" : "Apparaten",
+      "search-placeholder" : "Zoek",
+      "filters" : {
+        "exposed" : "Actief",
+        "unexposed" : "Niet Actief",
+        "unsupported" : "Geen Support"
+      },
+      "device" : {
+        "unknown-zone" : "Onbekende Zone"
+      },
+      "description" : "Selecteer welke apparaten in HomeKit moeten verschijnen."
     },
     "identifier" : {
       "title" : "Bridge Identifier",
       "description" : "Verander de bridge identifier als je meerdere Homeys in je netwerk hebt. Elke Homey moet een unieke identifier hebben.",
       "button" : "Verander Identifier"
-    },
-    "reset": {
-      "para-1": "Als je problemen hebt met het toevoegen van Homey aan HomeKit, bijvoorbeeld als iOS de HomeKitty bridge niet kan vinden, dan kun je een volledige reset uitvoeren. Dit vereist een herstart van de app!",
-      "button": "Reset HomeKitty en begin opnieuw."
     }
   },
   "errors": {

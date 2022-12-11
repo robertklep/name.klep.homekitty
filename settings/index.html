@@ -19,7 +19,7 @@
     <div :class='{ active: currentPage === "main", page : true, fixed : true }'>
 
       <div class='list'>
-        <p>homekit settings</p>
+        <p data-i18n='settings.main.homekit-settings.title'>homekit settings</p>
         <ul>
           <li>
             Publish all supported devices to HomeKit
@@ -27,7 +27,7 @@
           <li>
             Remove all devices from HomeKit
           </li>
-          <li @click='setPage("devices")'>
+          <li @click='setPage("devices")' data-i18n='settings.main.per-device'>
             Select per device
             <i class='arrow right'></i>
           </li>
@@ -35,20 +35,20 @@
       </div>
 
       <div class='list'>
-        <p>new device defaults</p>
+        <p data-i18n='settings.main.new-device-defaults.title'>new device defaults</p>
         <ul>
           <li>
-            Publish to HomeKit
+            <span data-i18n='settings.main-new-device-defaults.switch'>Publish to HomeKit</span>
             <i class='switch'>
               <label class="form-switch"><input type="checkbox" checked><i></i></label>
             </i>
           </li>
         </ul>
-        <p>Select what should happen when new devices are added to Homey.</p>
+        <p data-i18n='settings.main.new-device-defaults.description'>Select what should happen when new devices are added to Homey.</p>
       </div>
 
       <div class='list'>
-        <p>app settings</p>
+        <p data-i18n='settings.main.app-settings.title'>app settings</p>
         <ul>
           <li>
             Bridge Identifier
@@ -65,7 +65,7 @@
       </div>
 
       <div class='list'>
-        <p>homekit pairing</p>
+        <p data-i18n='settings.main.homekit-pairing.title'>homekit pairing</p>
         <ul>
           <li @click='setPage("qrcode")'>
             Pairing Code
@@ -75,7 +75,7 @@
             </span>
           </li>
         </ul>
-        <p>Pairing code to add HomeKitty to the Home app. Press for QR code.</p>
+        <p data-i18n='settings.main.homekit-pairing.description'>Pairing code to add HomeKitty to the Home app.</p>
       </div>
 
     </div>
@@ -83,17 +83,17 @@
     <div :class='{ active : currentPage === "devices", page : true }'>
       <header>
         <i class='arrow left' @click='setPage("main")'></i>
-        Devices
+        <span data-i18n='settings.devices.header'>Devices</span>
         <div class='search'>
-          <input type=text placeholder='Search' autocapitalize='off' v-model='search' @keyup='onKeyUp'>
+          <input type=text :placeholder='Homey.__("settings.devices.search-placeholder")' autocapitalize='off' v-model='search' @keyup='onKeyUp'>
         </div>
         <div class='filters'>
           <input type='checkbox' id='exposed' :checked='!! filters.exposed' @change='filters.exposed = ! filters.exposed'>
-          <label for='exposed' data-i18n='settings.filters.exposed'>Added</label>
+          <label for='exposed' data-i18n='settings.devices.filters.exposed'>Added</label>
           <input type='checkbox' id='unexposed' :checked='!! filters.unexposed' @change='filters.unexposed = ! filters.unexposed'>
-          <label for='unexposed' data-i18n='settings.filters.unexposed'>Not Added</label>
+          <label for='unexposed' data-i18n='settings.devices.filters.unexposed'>Not Added</label>
           <input type='checkbox' id='unsupported' :checked='!! filters.unsupported' @change='filters.unsupported = ! filters.unsupported'>
-          <label for='unsupported' data-i18n='settings.filters.unsupported'>Unsupported</label>
+          <label for='unsupported' data-i18n='settings.devices.filters.unsupported'>Unsupported</label>
         </div>
       </header>
       <div class='list'>
@@ -103,7 +103,7 @@
               <img :src="device.iconObj?.url || 'mock-icon.png'" :title="'id = ' + device.id + ', class = ' + device.class"/>
             </figure>
             <p>
-              <i>{{ device.zoneName || Homey.__("settings.device.unknown-zone") }}</i><br>
+              <i>{{ device.zoneName || Homey.__("settings.devices.device.unknown-zone") }}</i><br>
               {{ device.name }}
             </p>
             <i class='switch'>
@@ -114,21 +114,7 @@
             </i>
           </li>
         </ul>
-        <p>Select which device(s) should be published to HomeKit.</p>
-      </div>
-    </div>
-
-    <div :class='{ active : currentPage === "qrcode", page : true }'>
-      <header>
-        <i class='arrow left' @click='setPage("main")'></i>
-        QR Code
-      </header>
-      <div class='list'>
-        <ul>
-          <li>
-            <img style='width: 80%; margin: 1em auto' src='../assets/qrcode/small.png'>
-          </li>
-        </ul>
+        <p data-i18n='settings.devices.description'>Select which devices should be published to HomeKit.</p>
       </div>
     </div>
 
@@ -154,6 +140,20 @@
             <span class='danger' data-i18n='settings.identifier.button' @click='setBridgeIdentifier()'>
               Change Identifier
             </span>
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    <div :class='{ active : currentPage === "qrcode", page : true }'>
+      <header>
+        <i class='arrow left' @click='setPage("main")'></i>
+        QR Code
+      </header>
+      <div class='list'>
+        <ul>
+          <li>
+            <img style='width: 80%; margin: 1em auto' src='../assets/qrcode/small.png'>
           </li>
         </ul>
       </div>
