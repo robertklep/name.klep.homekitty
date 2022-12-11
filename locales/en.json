@@ -1,4 +1,8 @@
 {
+  "settings2": {
+    "identifier" : {
+    }
+  },
   "settings" : {
     "tabs": {
       "devices": "Devices",
@@ -11,6 +15,7 @@
       "unsupported" : "Unsupported"
     },
     "device": {
+      "unknown-zone" : "Unknown Zone",
       "add": "Add to HomeKit",
       "delete": "Delete from HomeKit",
       "unknown": "Unknown",
@@ -18,11 +23,9 @@
       "unavailable" : "Unavailable 😬"
     },
     "identifier" : {
-      "title" : "Change Bridge Identifier",
-      "para-1" : "If you want to run multiple instances of HomeKitty in your network, for instance if you have two (or more) Homey's, each instance should have a unique bridge identifier.",
-      "para-2" : "After changing this setting, restart the HomeKitty app for the change to take effect.",
-      "para-3" : "Change this only if you have a reason to do so, otherwise you may lose your current HomeKit configuration.",
-      "button" : "Change"
+      "title" : "Bridge Identifier",
+      "description" : "Change the bridge identifier if you have multiple Homeys in your network. Each Homey should have a unique identifier.",
+      "button" : "Change Identifier"
     },
     "reset" : {
       "para-1" : "If you have problems trying to add Homey to HomeKit, for instance, if HomeKit can't find the HomeKitty bridge, you can perform a full reset. Make sure to restart the app afterwards!",
