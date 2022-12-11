@@ -340,6 +340,10 @@ module.exports = class HomeKitty extends Homey.App {
     return device?.driverUri === 'homey:app:name.klep.homekitty';
   }
 
+  isHomeyDevice(device) {
+    return device?.driverUri === 'homey:manager:vdevice' && device?.driverId === 'homey';
+  }
+
   async reset(delayedExit = false) {
     this.log('resetting credentials');
     // reset credentials and persistence (start over)
@@ -413,7 +417,7 @@ module.exports = class HomeKitty extends Homey.App {
 
       // return the list of devices
       return Object.values(await this.getDevices())
-        .filter(device => ! this.isVirtualDevice(device))
+        .filter(device => ! this.isVirtualDevice(device) && ! this.isHomeyDevice(device))
         .map(device => {
           // pass the device state (supported/exposed) to the API
           device.homekitty = {
