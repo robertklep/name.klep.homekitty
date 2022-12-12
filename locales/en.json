@@ -1,43 +1,50 @@
 {
-  "settings" : {
-    "main" : {
-      "homekit-settings" : {
-        "title" : "homekit settings",
-        "per-device" : "Select per device"
+  "settings": {
+    "main": {
+      "homekit-settings": {
+        "title": "homekit settings",
+        "per-device": "Select per device"
       },
-      "new-device-defaults" : {
-        "title" : "new device defaults",
-        "switch" : "Publish to HomeKit",
-        "description" : "Select what should happen when new devices are added to Homey."
+      "new-device-defaults": {
+        "title": "new device defaults",
+        "switch": "Publish to HomeKit",
+        "description": "Select what should happen when new devices are added to Homey."
       },
-      "app-settings" : { 
-        "title" : "app settings"
+      "app-settings": {
+        "title": "app settings"
       },
-      "homekit-pairing" : {
-        "title" : "homekit pairing",
-        "description" : "Pairing code to add HomeKitty to the Home app."
+      "homekit-pairing": {
+        "title": "homekit pairing",
+        "description": "Pairing code to add HomeKitty to the Home app."
       }
     },
-    "devices" : {
-      "header" : "Devices",
-      "search-placeholder" : "Search",
-      "filters" : {
-        "exposed" : "Added",
-        "unexposed" : "Not Added",
-        "unsupported" : "Unsupported"
+    "devices": {
+      "header": "Devices",
+      "search-placeholder": "Search",
+      "filters": {
+        "exposed": "Added",
+        "unexposed": "Not Added",
+        "unsupported": "Unsupported"
       },
-      "device" : {
-        "unknown-zone" : "Unknown Zone"
+      "device": {
+        "unknown-zone": "Unknown Zone"
       },
-      "description" : "Select which devices should be appear in HomeKit."
+      "description": "Select which devices should be appear in HomeKit."
     },
-    "identifier" : {
-      "title" : "Bridge Identifier",
-      "description" : "Change the bridge identifier if you have multiple Homeys in your network. Each Homey should have a unique identifier.",
-      "button" : "Change Identifier"
+    "identifier": {
+      "title": "Bridge Identifier",
+      "description": "Change the bridge identifier if you have multiple Homeys in your network. Each Homey should have a unique identifier.",
+      "button": "Change Identifier",
+      "confirmation": "Are you sure?",
+      "restart-app": "Bridge identifier has been changed, a restart of the HomeKitty app is now required."
+    },
+    "reset" : {
+      "description" : "If you have problems trying to add Homey to HomeKit (e.g. if HomeKit can't find the HomeKitty bridge), you can perform a full reset.",
+      "confirmation": "Are you sure?",
+      "restart-app" : "HomeKitty has been reset, a restart of the HomeKitty app is now required."
     }
   },
-  "errors" : {
-    "apirequest" : "API request failed 😭"
+  "errors": {
+    "apirequest": "API request failed 😭"
   }
 }

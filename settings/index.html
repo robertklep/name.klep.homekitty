@@ -59,7 +59,7 @@
           </li>
           <li>
             Reset
-            <i class='arrow right' @click='setPage("devices")'></i>
+            <i class='arrow right' @click='setPage("reset")'></i>
           </li>
         </ul>
       </div>
@@ -159,6 +159,23 @@
       </div>
     </div>
 
+    <div :class='{ active : currentPage === "reset", page : true }'>
+      <header>
+        <i class='arrow left' @click='setPage("main")'></i>
+        <span data-i18n='settings.identifier.title'>Reset</span>
+      </header>
+      <div class='list'>
+        <ul>
+          <li class='center'>
+            <span class='danger' @click='resetHomeKitty()'>
+              Reset HomeKitty
+            </span>
+          </li>
+        </ul>
+        <p data-i18n='settings.reset.description'>If you have problems trying to add Homey to HomeKit (e.g. if HomeKit can't find the HomeKitty bridge), you can perform a full reset.</p>
+      </div>
+    </div>
+
     <script>
       function onHomeyReady(Homey) {
         console.log('HomeKitty Settings Ready');
@@ -243,11 +260,11 @@
             return ident && ident !== this.bridgeIdentifier && ident.match(/^\S{2,}.*\S$/);
           },
           async setBridgeIdentifier() {
-            Homey.confirm('Are you sure!?', 'warning', async (err, response) => {
+            Homey.confirm(Homey.__('settings.identifier.confirmation'), 'warning', async (err, response) => {
               if (response !== true) return;
               try {
                 await this.setSetting('Bridge.Identifier', this.newBridgeIdentifier);
-                Homey.alert('Bridge identifier has changed, please restart the HomeKitty app!');
+                Homey.alert(Homey.__('settings.identifier.restart-app'));
                 this.bridgeIdentifier = this.newBridgeIdentifier;
               } catch(e) {
                 console.error(e);
@@ -255,11 +272,11 @@
               }
             });
           },
-          async clearStorage() {
-            Homey.confirm('Are you sure!?', 'warning', async (err, response) => {
+          async resetHomeKitty() {
+            Homey.confirm(Homey.__('settings.reset.confirmation'), 'warning', async (err, response) => {
               if (response === true) {
                 await this.request('POST', '/reset', { value : response });
-                Homey.alert('Storage is cleared, please restart the HomeKitty app!');
+                Homey.alert(Homey.__('settings.reset.restart-app'));
               }
             });
           },
