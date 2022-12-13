@@ -36,12 +36,12 @@
       "description": "Change the bridge identifier if you have multiple Homeys in your network. Each Homey should have a unique identifier.",
       "button": "Change Identifier",
       "confirmation": "Are you sure?",
-      "restart-app": "Bridge identifier has been changed, a restart of the HomeKitty app is now required."
+      "restart-app": "Bridge identifier has been changed, the HomeKitty app will now restart."
     },
     "reset" : {
       "description" : "If you have problems trying to add Homey to HomeKit (e.g. if HomeKit can't find the HomeKitty bridge), you can perform a full reset.",
       "confirmation": "Are you sure?",
-      "restart-app" : "HomeKitty has been reset, a restart of the HomeKitty app is now required."
+      "restart-app" : "HomeKitty has been reset, the HomeKitty app is will now restart."
     }
   },
   "errors": {
