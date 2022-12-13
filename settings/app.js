@@ -123,6 +123,10 @@ function onHomeyReady(Homey) {
       this.newDevicePublish    = await this.getSetting('Settings.NewDevicePublish') ?? true;
       this.newBridgeIdentifier = this.bridgeIdentifier;
       const devices            = await this.getDevices();
+      // swiping right returns to main page
+      document.addEventListener('swiped-right', e => {
+        this.setPage('main');
+      });
       // watch for changes in exposed state, then reload devices
       Homey.on('settings.set', async (key) => {
         if (key === 'HomeKit.Exposed') {
