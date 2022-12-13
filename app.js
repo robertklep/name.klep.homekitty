@@ -273,10 +273,10 @@ module.exports = class HomeKitty extends Homey.App {
       return false;
     }
 
-    // if we don't know the exposure state of the device (i.e.
-    // it's new to us), default to exposing it to HK
+    // if we don't know the exposure state of the device (i.e. it's new to us),
+    // use the user-defined default.
     if (! this.#exposed.has(device.id)) {
-      this.#exposed.set(device.id, true);
+      this.#exposed.set(device.id, this.homey.settings.get('Settings.NewDevicePublish') ?? true);
     }
 
     this.log(`${ prefix } trying mapper`);

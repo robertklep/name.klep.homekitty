@@ -41,7 +41,7 @@
           <li>
             <span data-i18n='settings.main-new-device-defaults.switch'>Publish to HomeKit</span>
             <i class='switch'>
-              <label class="form-switch"><input type="checkbox" checked><i></i></label>
+              <label class="form-switch"><input type="checkbox" v-model='newDevicePublish' @change='onChangeNewDevicePublish'><i></i></label>
             </i>
           </li>
         </ul>

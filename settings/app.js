@@ -10,12 +10,16 @@ function onHomeyReady(Homey) {
     bridgeIdentifier:           null,
     newBridgeIdentifier:        null,
     hasBridgeIdentifierChanged: false,
+    newDevicePublish:           true,
     filters:                    { exposed : true, unexposed : true },
     // methods
     onKeyUp(ev) {
       if (ev.key === 'Escape') {
         this.search = '';
       }
+    },
+    async onChangeNewDevicePublish(ev) {
+      await this.setSetting('Settings.NewDevicePublish', this.newDevicePublish);
     },
     async onChangeFilter(ev) {
       await this.setSetting('Settings.Filters', this.filters);
@@ -116,6 +120,7 @@ function onHomeyReady(Homey) {
     async mounted() {
       this.bridgeIdentifier    = await this.getSetting('Bridge.Identifier');
       this.filters             = await this.getSetting('Settings.Filters') || this.filters;
+      this.newDevicePublish    = await this.getSetting('Settings.NewDevicePublish') ?? true;
       this.newBridgeIdentifier = this.bridgeIdentifier;
       const devices            = await this.getDevices();
       // watch for changes in exposed state, then reload devices
