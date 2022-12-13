@@ -3,7 +3,7 @@
     "main" : {
       "homekit-settings" : {
         "title" : "homekit instellingen",
-        "per-device" : "Selecteer per device"
+        "device-list" : "Lijst van Apparaten"
       },
       "new-device-defaults" : {
         "title" : "nieuw apparaat defaults",
@@ -39,9 +39,9 @@
       "restart-app" : "Bridge identifier is veranderd, een herstart van de HomeKitty app is noodzakelijk."
     },
     "reset" : {
-      "description" : "Als je problemen hebt met het toevoegen van Homey aan HomeKit (b.v. als HomeKit de HomeKitty bridge niet kan vinden) kun je een volledige reset uitvoeren.",
+      "description":  "Als je problemen hebt met het toevoegen van Homey aan HomeKit (b.v. als HomeKit de HomeKitty bridge niet kan vinden) kun je een volledige reset uitvoeren.",
       "confirmation": "Weet je het zeker?",
-      "restart-app" : "HomeKitty is gereset, een herstart van de HomeKitty app is noodzakelijk."
+      "restart-app":  "HomeKitty is gereset, een herstart van de HomeKitty app is noodzakelijk."
     }
   },
   "errors": {

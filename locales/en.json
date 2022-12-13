@@ -3,7 +3,7 @@
     "main": {
       "homekit-settings": {
         "title": "homekit settings",
-        "per-device": "Select per device"
+        "device-list": "Devices List"
       },
       "new-device-defaults": {
         "title": "new device defaults",

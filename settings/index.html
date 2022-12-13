@@ -28,8 +28,8 @@
           <li>
             Remove all devices from HomeKit
           </li>
-          <li @click='setPage("devices")' data-i18n='settings.main.per-device'>
-            Select per device
+          <li @click='setPage("devices")'>
+            <span data-i18n='settings.main.homekit-settings.device-list'>Devices List</span>
             <i class='arrow right'></i>
           </li>
         </ul>
@@ -39,7 +39,7 @@
         <p data-i18n='settings.main.new-device-defaults.title'>new device defaults</p>
         <ul>
           <li>
-            <span data-i18n='settings.main-new-device-defaults.switch'>Publish to HomeKit</span>
+            <span data-i18n='settings.main.new-device-defaults.switch'>Publish to HomeKit</span>
             <i class='switch'>
               <label class="form-switch"><input type="checkbox" v-model='newDevicePublish' @change='onChangeNewDevicePublish'><i></i></label>
             </i>
@@ -163,7 +163,7 @@
     <div :class='{ active : currentPage === "reset", page : true }'>
       <header>
         <i class='arrow left' @click='setPage("main")'></i>
-        <span data-i18n='settings.identifier.title'>Reset</span>
+        Reset
       </header>
       <div class='list'>
         <ul>
