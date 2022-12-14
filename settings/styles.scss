@@ -1,3 +1,5 @@
+@use "mixins/spinner.scss";
+
 @mixin reset-list {
   margin:     0;
   padding:    0;
@@ -39,6 +41,30 @@ body {
 }
 
 .homekitty {
+  @include spinner.spinner;
+
+  .lds-spinner {
+    position:    absolute !important;
+    display:     none;
+    left:        50%;
+    top:         50%;
+    margin-left: -20px;
+    margin-top:  -20px;
+  }
+
+  &.loading {
+    width:           100vw;
+    height:          100vh;
+
+    .lds-spinner {
+      display: block;
+    }
+
+    .page {
+      opacity: 0;
+    }
+  }
+
   .page {
     background-color: var(--hk-background-color);
     width:            100vw;

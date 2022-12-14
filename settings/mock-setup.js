@@ -7,6 +7,14 @@ void function() {
   Homey.setSettings({ 'Bridge.Identifier' : 'Homey' });
   Homey.addRoutes([{
     method: 'GET',
+    path:   '/ping',
+    fn:     (args, cb) => {
+      setTimeout(() => {
+        cb(null, 'pong');
+      }, 2000);
+    }
+  }, {
+    method: 'GET',
     path:   '/devices',
     fn:     (args, cb) => {
       cb(null, mockDevices);

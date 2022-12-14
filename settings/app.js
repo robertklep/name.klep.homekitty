@@ -4,6 +4,7 @@ function onHomeyReady(Homey) {
   // eslint-disable-next-line
   PetiteVue.createApp({
     // data
+    isLoading:                  true,
     devices:                    {},
     search:                     '',
     currentPage:                'main',
@@ -38,18 +39,25 @@ function onHomeyReady(Homey) {
         });
       });
     },
-    request(method, endpoint, data) {
+    _request(method, endpoint, data) {
       return new Promise((resolve, reject) => {
         Homey.api(method, endpoint, data, (err, result) => {
           if (err) {
-            console.error(err);
-            Homey.alert(Homey.__('errors.apirequest') + ': ' + err.message);
             reject(err);
           } else {
             resolve(result);
           }
         });
       });
+    },
+    async request(method, endpoint, data) {
+      try {
+        return this._request(method, endpoint, data);
+      } catch(err) {
+        console.error(err);
+        Homey.alert(Homey.__('errors.apirequest') + ': ' + err.message);
+        throw err;
+      }
     },
     async getDevices() {
       console.log('getting devices');
@@ -81,6 +89,11 @@ function onHomeyReady(Homey) {
         this.devices.find(d => d.id === device.id).homekitty.exposed = false;
       } catch(e) {}
     },
+    async setExposureState(state) {
+      await this.setSetting('Settings.SetExposureState', state);
+      Homey.alert(Homey.__('settings.expose-all.restart-app'));
+      await this.loadSettings();
+    },
     isValidIdentifier() {
       const ident = this.newBridgeIdentifier;
       return ident && ident !== this.bridgeIdentifier && ident.match(/^\S{2,}.*\S$/);
@@ -92,6 +105,7 @@ function onHomeyReady(Homey) {
           await this.setSetting('Bridge.Identifier', this.newBridgeIdentifier);
           Homey.alert(Homey.__('settings.identifier.restart-app'));
           this.bridgeIdentifier = this.newBridgeIdentifier;
+          await this.loadSettings();
         } catch(e) {
           console.error(e);
           Homey.alert('Error', e.message);
@@ -103,6 +117,7 @@ function onHomeyReady(Homey) {
         if (response === true) {
           await this.request('POST', '/reset', { value : response });
           Homey.alert(Homey.__('settings.reset.restart-app'));
+          await this.loadSettings();
         }
       });
     },
@@ -116,13 +131,37 @@ function onHomeyReady(Homey) {
         Homey.set(key, value, err => err ? reject(err) : resolve(value));
       });
     },
-    // called from @vue:mounted event handler on #app
-    async mounted() {
+    async onAppReady() {
+      const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
+
+      this.isLoading = true;
+      while (true) {
+        try {
+          await this._request('GET', '/ping');
+          break;
+        } catch(e) {
+          await delay(1000);
+        }
+      }
+      this.isLoading = false;
+    },
+    // load settings
+    async loadSettings() {
+      // wait for app to become ready
+      await this.onAppReady();
+
+      // load settings
       this.bridgeIdentifier    = await this.getSetting('Bridge.Identifier');
       this.filters             = await this.getSetting('Settings.Filters') || this.filters;
       this.newDevicePublish    = await this.getSetting('Settings.NewDevicePublish') ?? true;
       this.newBridgeIdentifier = this.bridgeIdentifier;
-      const devices            = await this.getDevices();
+      this.currentPage         = 'main';
+      await this.getDevices();
+    },
+    // called from @vue:mounted event handler on #app
+    async mounted() {
+      await this.loadSettings();
+
       // swiping right returns to main page
       document.addEventListener('swiped-right', e => {
         this.setPage('main');

@@ -119,6 +119,24 @@ module.exports = class HomeKitty extends Homey.App {
       this.log('[onUnload] saving expose map');
       this.#exposed.save();
     });
+    // watch for (un)expose all setting change (from the app settings page)
+    this.homey.settings.on('set', key => {
+      if (key != 'Settings.SetExposureState') return;
+
+      // get the new exposure state for all devices
+      const state = this.homey.settings.get('Settings.SetExposureState');
+      if (state !== true && state !== false) return;
+
+      // remove the setting
+      this.homey.settings.unset('Settings.SetExposureState');
+
+      // set it
+      this.log('setting exposure state for all devices to', state);
+      this.#exposed.setAll(state);
+
+      // restart app
+      this.exit();
+    });
   }
 
   async initializeWebApi() {
@@ -482,6 +500,13 @@ class StorageBackedMap extends Map {
   set(key, value) {
     this.#dirty = this.#dirty || this.get(key) !== value;
     return super.set(key, value);
+  }
+
+  setAll(value) {
+    for (const key of this.keys()) {
+      this.set(key, value);
+    }
+    this.save();
   }
 
   delete(key) {

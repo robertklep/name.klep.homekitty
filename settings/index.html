@@ -10,27 +10,30 @@
     <script src='homey-settings-mock.js'></script>
     <script src='mock-setup.js?0982093849234'></script>
     <script src='app.js' defer></script>
-    <link rel="stylesheet" href="styles.css?49FA0A8C4B01-A9B2-97AE8ABA5046">
+    <link rel="stylesheet" href="styles.css?49FA0A8C4B01-A9B2-97AE">
     <style>
       /* prevent FOUC */
       [v-cloak] { display: none }
     </style>
   </head>
-  <body class='homekitty' id='homekitty' v-cloak @vue:mounted='mounted'>
+  <body :class='{ homekitty : true, loading : isLoading }' id='homekitty' v-cloak @vue:mounted='mounted'>
+    <div class="lds-spinner"><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div></div>
 
     <div :class='{ active: currentPage === "main", page : true, fixed : true }'>
 
       <div class='list'>
-        <p data-i18n='settings.main.homekit-settings.title'>homekit settings</p>
+        <p data-i18n='settings.main.homekit-publishing.title'>homekit publishing</p>
         <ul>
-          <li>
-            Publish all supported devices to HomeKit
+          <li @click='setPage("expose-all")'>
+            <span data-i18n='settings.main.homekit-publishing.expose-all'>Publish all devices</span>
+            <i class='arrow right'></i>
           </li>
-          <li>
-            Remove all devices from HomeKit
+          <li @click='setPage("unexpose-all")'>
+            <span data-i18n='settings.main.homekit-publishing.unexpose-all'>Remove all devices</span>
+            <i class='arrow right'></i>
           </li>
           <li @click='setPage("devices")'>
-            <span data-i18n='settings.main.homekit-settings.device-list'>Devices List</span>
+            <span data-i18n='settings.main.homekit-publishing.device-list'>Devices List</span>
             <i class='arrow right'></i>
           </li>
         </ul>
@@ -117,6 +120,40 @@
           </li>
         </ul>
         <p data-i18n='settings.devices.description'>Select which devices should be published to HomeKit.</p>
+      </div>
+    </div>
+
+    <div :class='{ active : currentPage === "expose-all", page : true }'>
+      <header>
+        <i class='arrow left' @click='setPage("main")'></i>
+        <span data-i18n='settings.expose-all.title'>Publish All</span>
+      </header>
+      <div class='list'>
+        <ul>
+          <li class='center'>
+            <span class='danger' @click='setExposureState(true)' data-i18n='settings.expose-all.button'>
+              Publish all devices to HomeKit
+            </span>
+          </li>
+        </ul>
+        <p data-i18n='settings.expose-all.description'>This will publish all (supported) Homey devices to HomeKit. You can then remove specific devices from the device list.</p>
+      </div>
+    </div>
+
+    <div :class='{ active : currentPage === "unexpose-all", page : true }'>
+      <header>
+        <i class='arrow left' @click='setPage("main")'></i>
+        <span data-i18n='settings.unexpose-all.title'>Remove All</span>
+      </header>
+      <div class='list'>
+        <ul>
+          <li class='center'>
+            <span class='danger' @click='setExposureState(false)' data-i18n='settings.unexpose-all.button'>
+              Remove all Homey devices from HomeKit
+            </span>
+          </li>
+        </ul>
+        <p data-i18n='settings.unexpose-all.description'>This will remove all Homey devices from HomeKit. You can then publish specific devices from the device list.</p>
       </div>
     </div>
 

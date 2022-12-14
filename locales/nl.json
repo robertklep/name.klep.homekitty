@@ -1,8 +1,10 @@
 {
   "settings": {
     "main" : {
-      "homekit-settings" : {
+      "homekit-publishing" : {
         "title" : "homekit instellingen",
+        "expose-all": "Voeg alle apparaten toe",
+        "unexpose-all": "Verwijder alle apparaten",
         "device-list" : "Lijst van Apparaten"
       },
       "new-device-defaults" : {
@@ -30,6 +32,17 @@
         "unknown-zone" : "Onbekende Zone"
       },
       "description" : "Selecteer welke apparaten in HomeKit moeten verschijnen."
+    },
+    "expose-all" : {
+      "title" : "Voeg Alles Toe",
+      "button": "Voeg alle apparaten toe aan HomeKit",
+      "description" : "Dit voegt alle ondersteunde Homey apparaten toe aan HomeKit. Hierna kun je specifieke apparaten verwijderen via de apparatenlijst.",
+      "restart-app" : "De HomeKitty app wordt nu herstart."
+    },
+    "unexpose-all" : {
+      "title" : "Verwijder Alles",
+      "button": "Verwijder alle Homey apparaten uit HomeKit",
+      "description" : "Dit verwijdert alle Homey apparaten uit HomeKit. Hierna kun je specifieke apparaten toevoegen via de apparatenlijst."
     },
     "identifier" : {
       "title" : "Bridge Identifier",

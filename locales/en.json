@@ -1,8 +1,10 @@
 {
   "settings": {
     "main": {
-      "homekit-settings": {
-        "title": "homekit settings",
+      "homekit-publishing": {
+        "title": "homekit publishing",
+        "expose-all": "Publish all devices",
+        "unexpose-all": "Remove all devices",
         "device-list": "Devices List"
       },
       "new-device-defaults": {
@@ -17,6 +19,17 @@
         "title": "homekit pairing",
         "description": "Pairing code to add HomeKitty to the Home app."
       }
+    },
+    "expose-all" : {
+      "title" : "Publish All",
+      "button": "Publish all devices to HomeKit",
+      "description" : "This will publish all supported Homey devices to HomeKit. You can then remove specific devices using the device list.",
+      "restart-app": "The HomeKitty app will now restart."
+    },
+    "unexpose-all" : {
+      "title" : "Remove All",
+      "button": "Remove all Homey devices from HomeKit",
+      "description" : "This will remove all Homey devices from HomeKit. You can then publish specific devices using the device list."
     },
     "devices": {
       "header": "Devices",
