@@ -52,16 +52,18 @@ body {
     margin-top:  -20px;
   }
 
-  &.loading {
+  &.loading, &.restarting {
     width:           100vw;
     height:          100vh;
 
-    .lds-spinner {
-      display: block;
-    }
-
     .page {
       opacity: 0;
+    }
+  }
+
+  &.loading {
+    .lds-spinner {
+      display: block;
     }
   }
 

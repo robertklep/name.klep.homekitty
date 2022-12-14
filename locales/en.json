@@ -24,7 +24,7 @@
       "title" : "Publish All",
       "button": "Publish all devices to HomeKit",
       "description" : "This will publish all supported Homey devices to HomeKit. You can then remove specific devices using the device list.",
-      "restart-app": "The HomeKitty app will now restart."
+      "restart-app": "The HomeKitty app will now restart, please to back to the app page."
     },
     "unexpose-all" : {
       "title" : "Remove All",

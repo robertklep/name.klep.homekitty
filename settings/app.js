@@ -1,10 +1,14 @@
 function onHomeyReady(Homey) {
   console.log('HomeKitty Settings Ready');
   Homey.ready();
+
+  const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
+
   // eslint-disable-next-line
   PetiteVue.createApp({
     // data
     isLoading:                  true,
+    isRestarting:               false,
     devices:                    {},
     search:                     '',
     currentPage:                'main',
@@ -39,6 +43,16 @@ function onHomeyReady(Homey) {
         });
       });
     },
+    alert(msg, icon = null) {
+      return new Promise(resolve => {
+        Homey.alert(msg, icon, resolve);
+      });
+    },
+    confirm(msg, icon = null) {
+      return new Promise(resolve => {
+        Homey.confirm(msg, icon, (_, response) => resolve(response));
+      });
+    },
     _request(method, endpoint, data) {
       return new Promise((resolve, reject) => {
         Homey.api(method, endpoint, data, (err, result) => {
@@ -55,7 +69,7 @@ function onHomeyReady(Homey) {
         return this._request(method, endpoint, data);
       } catch(err) {
         console.error(err);
-        Homey.alert(Homey.__('errors.apirequest') + ': ' + err.message);
+        await this.alert(Homey.__('errors.apirequest') + ': ' + err.message, 'error');
         throw err;
       }
     },
@@ -90,36 +104,33 @@ function onHomeyReady(Homey) {
       } catch(e) {}
     },
     async setExposureState(state) {
+      this.isRestarting = true;
+      await this.alert(Homey.__('settings.expose-all.restart-app'), 'info');
       await this.setSetting('Settings.SetExposureState', state);
-      Homey.alert(Homey.__('settings.expose-all.restart-app'));
-      await this.loadSettings();
     },
     isValidIdentifier() {
       const ident = this.newBridgeIdentifier;
       return ident && ident !== this.bridgeIdentifier && ident.match(/^\S{2,}.*\S$/);
     },
     async setBridgeIdentifier() {
-      Homey.confirm(Homey.__('settings.identifier.confirmation'), 'warning', async (err, response) => {
-        if (response !== true) return;
-        try {
-          await this.setSetting('Bridge.Identifier', this.newBridgeIdentifier);
-          Homey.alert(Homey.__('settings.identifier.restart-app'));
-          this.bridgeIdentifier = this.newBridgeIdentifier;
-          await this.loadSettings();
-        } catch(e) {
-          console.error(e);
-          Homey.alert('Error', e.message);
-        }
-      });
+      const response = await this.confirm(Homey.__('settings.identifier.confirmation'), 'warning');
+      if (response !== true) return;
+      try {
+        this.isRestarting = true;
+        await this.alert(Homey.__('settings.identifier.restart-app'), 'info');
+        await this.setSetting('Bridge.Identifier', this.newBridgeIdentifier);
+        this.bridgeIdentifier = this.newBridgeIdentifier;
+      } catch(e) {
+        console.error(e);
+        await this.alert('Error: ' + e.message, 'error');
+      }
     },
     async resetHomeKitty() {
-      Homey.confirm(Homey.__('settings.reset.confirmation'), 'warning', async (err, response) => {
-        if (response === true) {
-          await this.request('POST', '/reset', { value : response });
-          Homey.alert(Homey.__('settings.reset.restart-app'));
-          await this.loadSettings();
-        }
-      });
+      const response = await Homey.confirm(Homey.__('settings.reset.confirmation'), 'warning');
+      if (response !== true) return;
+      this.isRestarting = true;
+      await this.request('POST', '/reset', { value : response });
+      await this.alert(Homey.__('settings.reset.restart-app'), 'info');
     },
     getSetting(key) {
       return new Promise((resolve, reject) => {
@@ -132,8 +143,6 @@ function onHomeyReady(Homey) {
       });
     },
     async onAppReady() {
-      const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
-
       this.isLoading = true;
       while (true) {
         try {
@@ -145,8 +154,8 @@ function onHomeyReady(Homey) {
       }
       this.isLoading = false;
     },
-    // load settings
-    async loadSettings() {
+    // called from @vue:mounted event handler on #app
+    async mounted() {
       // wait for app to become ready
       await this.onAppReady();
 
@@ -156,11 +165,9 @@ function onHomeyReady(Homey) {
       this.newDevicePublish    = await this.getSetting('Settings.NewDevicePublish') ?? true;
       this.newBridgeIdentifier = this.bridgeIdentifier;
       this.currentPage         = 'main';
+
+      // load devices
       await this.getDevices();
-    },
-    // called from @vue:mounted event handler on #app
-    async mounted() {
-      await this.loadSettings();
 
       // swiping right returns to main page
       document.addEventListener('swiped-right', e => {

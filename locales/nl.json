@@ -37,7 +37,7 @@
       "title" : "Voeg Alles Toe",
       "button": "Voeg alle apparaten toe aan HomeKit",
       "description" : "Dit voegt alle ondersteunde Homey apparaten toe aan HomeKit. Hierna kun je specifieke apparaten verwijderen via de apparatenlijst.",
-      "restart-app" : "De HomeKitty app wordt nu herstart."
+      "restart-app" : "De HomeKitty app wordt nu herstart. Ga terug naar de app pagina."
     },
     "unexpose-all" : {
       "title" : "Verwijder Alles",

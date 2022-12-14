@@ -118,15 +118,15 @@ body {
   margin-left: -20px;
   margin-top: -20px;
 }
-.homekitty.loading {
+.homekitty.loading, .homekitty.restarting {
   width: 100vw;
   height: 100vh;
 }
+.homekitty.loading .page, .homekitty.restarting .page {
+  opacity: 0;
+}
 .homekitty.loading .lds-spinner {
   display: block;
-}
-.homekitty.loading .page {
-  opacity: 0;
 }
 .homekitty .page {
   background-color: var(--hk-background-color);

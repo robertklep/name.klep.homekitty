@@ -3,6 +3,7 @@
   <head>
     <title>HomeKitty</title>
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <meta name='format-detection' content='telephone=no'>
     <script src='/homey.js' data-origin='settings'></script>
     <script src="petite-vue.js"></script>
     <script src="fuse.min.js"></script>
@@ -16,7 +17,7 @@
       [v-cloak] { display: none }
     </style>
   </head>
-  <body :class='{ homekitty : true, loading : isLoading }' id='homekitty' v-cloak @vue:mounted='mounted'>
+  <body :class='{ homekitty : true, loading : isLoading, restarting : isRestarting }' id='homekitty' v-cloak @vue:mounted='mounted'>
     <div class="lds-spinner"><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div></div>
 
     <div :class='{ active: currentPage === "main", page : true, fixed : true }'>
