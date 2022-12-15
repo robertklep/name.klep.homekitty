@@ -23,13 +23,13 @@
     "expose-all" : {
       "title" : "Publish All",
       "button": "Publish all devices to HomeKit",
-      "description" : "This will publish all supported Homey devices to HomeKit. You can then remove specific devices using the device list.",
+      "description" : "This will publish all supported Homey devices to HomeKit. You can then remove specific devices using the device list. Requires app restart.",
       "restart-app": "The HomeKitty app will now restart, please to back to the app page."
     },
     "unexpose-all" : {
       "title" : "Remove All",
       "button": "Remove all Homey devices from HomeKit",
-      "description" : "This will remove all Homey devices from HomeKit. You can then publish specific devices using the device list."
+      "description" : "This will remove all Homey devices from HomeKit. You can then publish specific devices using the device list. Requires app restart."
     },
     "devices": {
       "header": "Devices",
@@ -46,7 +46,7 @@
     },
     "identifier": {
       "title": "Bridge Identifier",
-      "description": "Change the bridge identifier if you have multiple Homeys in your network. Each Homey should have a unique identifier.",
+      "description": "Change the bridge identifier if you have multiple Homeys in your network. Each Homey should have a unique identifier. Requires app restart.",
       "button": "Change Identifier",
       "confirmation": "Are you sure?",
       "restart-app": "Bridge identifier has been changed, the HomeKitty app will now restart."

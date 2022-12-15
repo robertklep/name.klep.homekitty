@@ -36,17 +36,17 @@
     "expose-all" : {
       "title" : "Voeg Alles Toe",
       "button": "Voeg alle apparaten toe aan HomeKit",
-      "description" : "Dit voegt alle ondersteunde Homey apparaten toe aan HomeKit. Hierna kun je specifieke apparaten verwijderen via de apparatenlijst.",
+      "description" : "Dit voegt alle ondersteunde Homey apparaten toe aan HomeKit. Hierna kun je specifieke apparaten verwijderen via de apparatenlijst. App restart nodig.",
       "restart-app" : "De HomeKitty app wordt nu herstart. Ga terug naar de app pagina."
     },
     "unexpose-all" : {
       "title" : "Verwijder Alles",
       "button": "Verwijder alle Homey apparaten uit HomeKit",
-      "description" : "Dit verwijdert alle Homey apparaten uit HomeKit. Hierna kun je specifieke apparaten toevoegen via de apparatenlijst."
+      "description" : "Dit verwijdert alle Homey apparaten uit HomeKit. Hierna kun je specifieke apparaten toevoegen via de apparatenlijst. App restart nodig."
     },
     "identifier" : {
       "title" : "Bridge Identifier",
-      "description" : "Verander de bridge identifier als je meerdere Homeys in je netwerk hebt. Elke Homey moet een unieke identifier hebben.",
+      "description" : "Verander de bridge identifier als je meerdere Homeys in je netwerk hebt. Elke Homey moet een unieke identifier hebben. App restart nodig.",
       "button" : "Verander Identifier",
       "confirmation" : "Weet je het zeker?",
       "restart-app" : "Bridge identifier is veranderd, de HomeKitty app wordt nu herstart."
