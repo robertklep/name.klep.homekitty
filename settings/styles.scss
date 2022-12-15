@@ -61,6 +61,18 @@ body {
     }
   }
 
+  &.restarting {
+    &::after {
+      content:   '\002934';
+      color:     red;
+      position:  absolute;
+      top:       10px;
+      left:      10px;
+      font-size: 40px;
+      transform: scale(-1, 1);
+    }
+  }
+
   &.loading {
     .lds-spinner {
       display: block;

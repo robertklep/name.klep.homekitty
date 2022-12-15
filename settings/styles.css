@@ -1,3 +1,4 @@
+@charset "UTF-8";
 :root {
   --hk-background-color: #f7f7f7;
   --hk-body-color: #333333;
@@ -124,6 +125,15 @@ body {
 }
 .homekitty.loading .page, .homekitty.restarting .page {
   opacity: 0;
+}
+.homekitty.restarting::after {
+  content: "⤴";
+  color: red;
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  font-size: 40px;
+  transform: scale(-1, 1);
 }
 .homekitty.loading .lds-spinner {
   display: block;
