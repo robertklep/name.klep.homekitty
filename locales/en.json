@@ -58,6 +58,9 @@
     }
   },
   "errors": {
-    "apirequest": "API request failed 😭"
+    "API_REQUEST_FAILED":        "API request failed 😭",
+    "API_ADD_DEVICE_FAILED":    "Unable to add device to HomeKit",
+    "API_DELETE_DEVICE_FAILED": "Unable to remove device from HomeKit",
+    "API_DEVICE_LIMIT_REACHED": "Cannot add device due to HomeKit device limit (150)"
   }
 }
