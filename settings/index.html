@@ -25,16 +25,16 @@
       <div class='list'>
         <p data-i18n='settings.main.homekit-publishing.title'>homekit publishing</p>
         <ul>
+          <li @click='setPage("devices")'>
+            <span data-i18n='settings.main.homekit-publishing.device-list'>Devices List</span>
+            <i class='arrow right'></i>
+          </li>
           <li @click='setPage("expose-all")'>
             <span data-i18n='settings.main.homekit-publishing.expose-all'>Publish all devices</span>
             <i class='arrow right'></i>
           </li>
           <li @click='setPage("unexpose-all")'>
             <span data-i18n='settings.main.homekit-publishing.unexpose-all'>Remove all devices</span>
-            <i class='arrow right'></i>
-          </li>
-          <li @click='setPage("devices")'>
-            <span data-i18n='settings.main.homekit-publishing.device-list'>Devices List</span>
             <i class='arrow right'></i>
           </li>
         </ul>
