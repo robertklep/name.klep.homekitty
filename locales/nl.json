@@ -57,6 +57,9 @@
       "restart-app":  "HomeKitty is gereset, de HomeKitty app wordt nu herstart."
     }
   },
+  "app" : {
+    "stopping" : "HomeKitty app is gestopt en dient handmatig opnieuw te worden opgestart"
+  },
   "errors": {
     "API_REQUEST_FAILED":       "API request mislukt 😭",
     "API_ADD_DEVICE_FAILED":    "Kon apparaat niet toevoegen aan HomeKit",

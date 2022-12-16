@@ -57,6 +57,9 @@
       "restart-app" : "HomeKitty has been reset, the HomeKitty app is will now restart."
     }
   },
+  "app" : {
+    "stopping" : "HomeKitty app has stopped and should be restarted manually."
+  },
   "errors": {
     "API_REQUEST_FAILED":        "API request failed 😭",
     "API_ADD_DEVICE_FAILED":    "Unable to add device to HomeKit",

@@ -384,8 +384,8 @@ module.exports = class HomeKitty extends Homey.App {
 
   async exit() {
     await this.#bridge.unpublish();
-    await this.notify('HomeKitty app restarting');
-    process.exit(1);
+    await this.notify(this.homey.i18n.__('app.stopping'));
+    process.exit(0);
   }
 
   async notify(excerpt) {
