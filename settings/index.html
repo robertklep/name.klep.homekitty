@@ -11,7 +11,7 @@
     <script src='homey-settings-mock.js'></script>
     <script src='mock-setup.js?0982093849234'></script>
     <script src='app.js' defer></script>
-    <link rel="stylesheet" href="styles.css?49FA0A8C4B01-A9B2-97AE">
+    <link rel="stylesheet" href="styles.css?49FA0A8C4B01-A9B2-97AiuooiweurE">
     <style>
       /* prevent FOUC */
       [v-cloak] { display: none }
@@ -58,9 +58,9 @@
         <ul>
           <li>
             Bridge Identifier
-            <span>
+            <span @click='setPage("identifier")'>
               {{ newBridgeIdentifier }}
-              <i class='arrow right' @click='setPage("identifier")'></i>
+              <i class='arrow right'></i>
             </span>
           </li>
           <li>
