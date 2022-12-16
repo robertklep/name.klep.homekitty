@@ -53,11 +53,11 @@ function onHomeyReady(Homey) {
         Homey.confirm(msg, icon, (_, response) => resolve(response));
       });
     },
-    _request(method, endpoint, data) {
+    _request(method, endpoint, data = null) {
       return new Promise((resolve, reject) => {
         Homey.api(method, endpoint, data, (err, result) => {
           if (err) {
-            reject(err);
+            reject(String(err).replace(/^Error:\s*/, ''));
           } else {
             resolve(result);
           }
@@ -66,10 +66,10 @@ function onHomeyReady(Homey) {
     },
     async request(method, endpoint, data) {
       try {
-        return this._request(method, endpoint, data);
+        return await this._request(method, endpoint, data);
       } catch(err) {
-        console.error(err);
-        await this.alert(Homey.__('errors.apirequest') + ': ' + err.message, 'error');
+        console.error('API request error:', err);
+        await this.alert(Homey.__(`errors.${ err }`) || Homey.__('errors.API_REQUEST_FAILED'), 'error');
         throw err;
       }
     },
@@ -89,19 +89,15 @@ function onHomeyReady(Homey) {
         return;
       }
     },
-    async exposeDevice(device) {
-      console.log('exposing device', device.id, device.name, device.class)
+    async changeExposureStateForDevice(id, target) {
+      const state = target.checked;
+      console.log(`changing exposure state for device ${ id } to ${ state }`);
       try {
-        await this.request('PUT', '/devices/' + device.id, device);
-        this.devices.find(d => d.id === device.id).homekitty.exposed = true;
-      } catch(e) {}
-    },
-    async unexposeDevice(device) {
-      console.log('unexposing device', device.id, device.name, device.class)
-      try {
-        await this.request('DELETE', '/devices/' + device.id, device);
-        this.devices.find(d => d.id === device.id).homekitty.exposed = false;
-      } catch(e) {}
+        await this.request(state ? 'PUT' : 'DELETE', '/devices/' + id);
+        this.devices.find(d => d.id === id).homekitty.exposed = state;
+      } catch(e) {
+        target.checked = ! state;
+      }
     },
     async setExposureState(state) {
       this.isRestarting = true;

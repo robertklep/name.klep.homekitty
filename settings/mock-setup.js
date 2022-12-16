@@ -11,7 +11,7 @@ void function() {
     fn:     (args, cb) => {
       setTimeout(() => {
         cb(null, 'pong');
-      }, 2000);
+      }, 0);
     }
   }, {
     method: 'GET',
@@ -23,6 +23,7 @@ void function() {
     method: 'PUT',
     path:   '/devices/:id',
     fn:     (args, cb) => {
+      return cb('API_DEVICE_LIMIT_REACHED');
       console.log('should expose device', args);
       cb();
     }
