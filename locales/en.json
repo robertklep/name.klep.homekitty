@@ -25,7 +25,7 @@
       "title" : "Publish All",
       "button": "Publish all devices to HomeKit",
       "description" : "This will publish all supported Homey devices to HomeKit. You can then remove specific devices using the device list. Requires app restart.",
-      "restart-app": "The HomeKitty app will now restart, please to back to the app page."
+      "restart-app": "A restart of the HomeKitty app is now required."
     },
     "unexpose-all" : {
       "title" : "Remove All",
@@ -50,16 +50,16 @@
       "description": "Change the bridge identifier if you have multiple Homeys in your network. Each Homey should have a unique identifier. Requires app restart.",
       "button": "Change Identifier",
       "confirmation": "Are you sure?",
-      "restart-app": "Bridge identifier has been changed, the HomeKitty app will now restart."
+      "restart-app": "Bridge identifier has been changed, a restart of the HomeKitty app is now required."
     },
     "reset" : {
       "description" : "If you have problems trying to add Homey to HomeKit (e.g. if HomeKit can't find the HomeKitty bridge), you can perform a full reset.",
       "confirmation": "Are you sure?",
-      "restart-app" : "HomeKitty has been reset, the HomeKitty app is will now restart."
+      "restart-app" : "HomeKitty has been reset, a restart of the HomeKitty app is now required."
     }
   },
   "app" : {
-    "stopping" : "HomeKitty app has stopped and should be restarted manually."
+    "stopping" : "The HomeKitty app has stopped and should be restarted manually."
   },
   "errors": {
     "API_REQUEST_FAILED":        "API request failed 😭",
