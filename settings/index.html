@@ -114,7 +114,7 @@
             </p>
             <i class='switch'>
               <label class="form-switch">
-                <input type="checkbox" @change='changeExposureStateForDevice(device.id, $event.target)' :checked='device.available && device.homekitty.supported && device.homekitty.exposed' :disabled='! device.available || ! device.homekitty.supported'>
+                <input type="checkbox" @change='changeExposureStateForDevice(device.id, $event.target)' :checked='device.homekitty.supported && device.homekitty.exposed' :disabled='! device.homekitty.supported'>
                 <i></i>
               </label>
             </i>

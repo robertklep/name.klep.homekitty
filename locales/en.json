@@ -62,7 +62,8 @@
     "stopping" : "The HomeKitty app has stopped and should be restarted manually."
   },
   "errors": {
-    "API_REQUEST_FAILED":        "API request failed 😭",
+    "API_REQUEST_FAILED":       "API request failed 😭",
+    "API_DEVICE_UNAVAILABLE":   "Device cannot be added to HomeKit at the moment because it's not available.",
     "API_ADD_DEVICE_FAILED":    "Unable to add device to HomeKit",
     "API_DELETE_DEVICE_FAILED": "Unable to remove device from HomeKit",
     "API_DEVICE_LIMIT_REACHED": "Cannot add device due to HomeKit device limit (150)"

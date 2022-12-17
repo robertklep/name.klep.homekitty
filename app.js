@@ -456,6 +456,14 @@ module.exports = class HomeKitty extends Homey.App {
         throw Error('API_ADD_DEVICE_FAILED');
       }
 
+      // check if device is available; if not, we'll only update its exposure
+      // status and let the user know we can't add it at the moment.
+      if (! device.available) {
+        this.#exposed.set(id, true);
+        this.#exposed.save();
+        throw Error('API_DEVICE_UNAVAILABLE');
+      }
+
       // update exposure state (before we try to add it)
       const oldExposureState = this.#exposed.get(id);
       this.#exposed.set(id, true);

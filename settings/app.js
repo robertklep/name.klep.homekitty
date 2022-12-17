@@ -90,13 +90,19 @@ function onHomeyReady(Homey) {
       }
     },
     async changeExposureStateForDevice(id, target) {
-      const state = target.checked;
+      const state     = target.checked;
+      let updateState = true;
       console.log(`changing exposure state for device ${ id } to ${ state }`);
       try {
         await this.request(state ? 'PUT' : 'DELETE', '/devices/' + id);
-        this.devices.find(d => d.id === id).homekitty.exposed = state;
       } catch(e) {
-        target.checked = ! state;
+        if (e !== 'API_DEVICE_UNAVAILABLE') {
+          updateState = false;
+          target.checked = ! state;
+        }
+      }
+      if (updateState) {
+        this.devices.find(d => d.id === id).homekitty.exposed = state;
       }
     },
     async setExposureState(state) {
@@ -179,7 +185,7 @@ function onHomeyReady(Homey) {
     },
     get filteredItems() {
       const filter = device => {
-        if (device.available && device.homekitty.supported) {
+        if (device.homekitty.supported) {
           if (this.filters.exposed   &&   device.homekitty.exposed) return true;
           if (this.filters.unexposed && ! device.homekitty.exposed) return true;
           return false;

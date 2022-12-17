@@ -63,6 +63,7 @@
   },
   "errors": {
     "API_REQUEST_FAILED":       "API request mislukt 😭",
+    "API_DEVICE_UNAVAILABLE":   "Apparaat kan op dit moment niet aan HomeKit worden toegevoegd omdat het niet beschikbaar is.",
     "API_ADD_DEVICE_FAILED":    "Kon apparaat niet toevoegen aan HomeKit",
     "API_DELETE_DEVICE_FAILED": "Kon apparaat niet verwijderen uit HomeKit",
     "API_DEVICE_LIMIT_REACHED": "Kon apparaat niet toevoegen in verband met HomeKit apparaat limiet (150)"
