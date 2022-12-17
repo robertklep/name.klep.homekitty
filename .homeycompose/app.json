@@ -56,6 +56,10 @@
     }
   },
   "api" : {
+    "ping" : {
+      "method" : "GET",
+      "path" : "/ping"
+    },
     "getDevices" : {
       "method" : "GET",
       "path" : "/devices"

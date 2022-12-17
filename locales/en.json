@@ -1,35 +1,70 @@
 {
-  "settings" : {
-    "tabs": {
-      "devices": "Devices",
-      "settings": "Settings",
-      "qrcode" : "QR Code"
+  "settings": {
+    "back" : "Done",
+    "main": {
+      "homekit-publishing": {
+        "title": "homekit publishing",
+        "expose-all": "Publish all devices",
+        "unexpose-all": "Remove all devices",
+        "device-list": "Devices List"
+      },
+      "new-device-defaults": {
+        "title": "new device defaults",
+        "switch": "Publish to HomeKit",
+        "description": "Select what should happen when new devices are added to Homey."
+      },
+      "app-settings": {
+        "title": "app settings"
+      },
+      "homekit-pairing": {
+        "title": "homekit pairing",
+        "description": "Pairing code to add HomeKitty to the Home app."
+      }
     },
-    "filters" : {
-      "exposed" : "Added",
-      "unexposed" : "Not Added",
-      "unsupported" : "Unsupported"
+    "expose-all" : {
+      "title" : "Publish All",
+      "button": "Publish all devices to HomeKit",
+      "description" : "This will publish all supported Homey devices to HomeKit. You can then remove specific devices using the device list. Requires app restart.",
+      "restart-app": "A restart of the HomeKitty app is now required."
     },
-    "device": {
-      "add": "Add to HomeKit",
-      "delete": "Delete from HomeKit",
-      "unknown": "Unknown",
-      "unsupported" : "Unsupported by HomeKitty 🥺",
-      "unavailable" : "Unavailable 😬"
+    "unexpose-all" : {
+      "title" : "Remove All",
+      "button": "Remove all Homey devices from HomeKit",
+      "description" : "This will remove all Homey devices from HomeKit. You can then publish specific devices using the device list. Requires app restart."
     },
-    "identifier" : {
-      "title" : "Change Bridge Identifier",
-      "para-1" : "If you want to run multiple instances of HomeKitty in your network, for instance if you have two (or more) Homey's, each instance should have a unique bridge identifier.",
-      "para-2" : "After changing this setting, restart the HomeKitty app for the change to take effect.",
-      "para-3" : "Change this only if you have a reason to do so, otherwise you may lose your current HomeKit configuration.",
-      "button" : "Change"
+    "devices": {
+      "header": "Devices",
+      "search-placeholder": "Search",
+      "filters": {
+        "exposed": "Added",
+        "unexposed": "Not Added",
+        "unsupported": "Unsupported"
+      },
+      "device": {
+        "unknown-zone": "Unknown Zone"
+      },
+      "description": "Select which devices should be appear in HomeKit."
+    },
+    "identifier": {
+      "title": "Bridge Identifier",
+      "description": "Change the bridge identifier if you have multiple Homeys in your network. Each Homey should have a unique identifier. Requires app restart.",
+      "button": "Change Identifier",
+      "confirmation": "Are you sure?",
+      "restart-app": "Bridge identifier has been changed, a restart of the HomeKitty app is now required."
     },
     "reset" : {
-      "para-1" : "If you have problems trying to add Homey to HomeKit, for instance, if HomeKit can't find the HomeKitty bridge, you can perform a full reset. Make sure to restart the app afterwards!",
-      "button" : "Reset HomeKitty and start over."
+      "description" : "If you have problems trying to add Homey to HomeKit (e.g. if HomeKit can't find the HomeKitty bridge), you can perform a full reset.",
+      "confirmation": "Are you sure?",
+      "restart-app" : "HomeKitty has been reset, a restart of the HomeKitty app is now required."
     }
   },
-  "errors" : {
-    "apirequest" : "API request failed 😭"
+  "app" : {
+    "stopping" : "The HomeKitty app has stopped and should be restarted manually."
+  },
+  "errors": {
+    "API_REQUEST_FAILED":        "API request failed 😭",
+    "API_ADD_DEVICE_FAILED":    "Unable to add device to HomeKit",
+    "API_DELETE_DEVICE_FAILED": "Unable to remove device from HomeKit",
+    "API_DEVICE_LIMIT_REACHED": "Cannot add device due to HomeKit device limit (150)"
   }
 }

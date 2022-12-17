@@ -1,4 +1,9 @@
 module.exports = {
+  async ping({ homey }) {
+    await homey.app.getBridge();
+    return 'pong';
+  },
+
   async getDevices({ homey }) {
     return homey.app.api.getDevices();
   },

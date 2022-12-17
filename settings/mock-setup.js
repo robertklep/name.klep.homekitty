@@ -7,6 +7,14 @@ void function() {
   Homey.setSettings({ 'Bridge.Identifier' : 'Homey' });
   Homey.addRoutes([{
     method: 'GET',
+    path:   '/ping',
+    fn:     (args, cb) => {
+      setTimeout(() => {
+        cb(null, 'pong');
+      }, 0);
+    }
+  }, {
+    method: 'GET',
     path:   '/devices',
     fn:     (args, cb) => {
       cb(null, mockDevices);
@@ -15,6 +23,7 @@ void function() {
     method: 'PUT',
     path:   '/devices/:id',
     fn:     (args, cb) => {
+      return cb('API_DEVICE_LIMIT_REACHED');
       console.log('should expose device', args);
       cb();
     }

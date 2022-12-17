@@ -119,6 +119,24 @@ module.exports = class HomeKitty extends Homey.App {
       this.log('[onUnload] saving expose map');
       this.#exposed.save();
     });
+    // watch for (un)expose all setting change (from the app settings page)
+    this.homey.settings.on('set', key => {
+      if (key != 'Settings.SetExposureState') return;
+
+      // get the new exposure state for all devices
+      const state = this.homey.settings.get('Settings.SetExposureState');
+      if (state !== true && state !== false) return;
+
+      // remove the setting
+      this.homey.settings.unset('Settings.SetExposureState');
+
+      // set it
+      this.log('setting exposure state for all devices to', state);
+      this.#exposed.setAll(state);
+
+      // restart app
+      this.exit();
+    });
   }
 
   async initializeWebApi() {
@@ -267,16 +285,10 @@ module.exports = class HomeKitty extends Homey.App {
       return false;
     }
 
-    // HK bridges can only bridge at most 150 devices (including themselves)
-    if (this.#bridge.bridgedAccessories.length >= 149) {
-      this.error(`${ prefix } reached the HomeKit limit of how many devices can be bridged`);
-      return false;
-    }
-
-    // if we don't know the exposure state of the device (i.e.
-    // it's new to us), default to exposing it to HK
+    // if we don't know the exposure state of the device (i.e. it's new to us),
+    // use the user-defined default.
     if (! this.#exposed.has(device.id)) {
-      this.#exposed.set(device.id, true);
+      this.#exposed.set(device.id, this.homey.settings.get('Settings.NewDevicePublish') ?? true);
     }
 
     this.log(`${ prefix } trying mapper`);
@@ -287,7 +299,12 @@ module.exports = class HomeKitty extends Homey.App {
       // expose it to HK unless the user doesn't want to
       if (this.#exposed.get(device.id) !== false) {
         this.log(`${ prefix } - device should be exposed`);
-        this.#bridge.addBridgedAccessory(mappedDevice.accessorize());
+        try {
+          this.#bridge.addBridgedAccessory(mappedDevice.accessorize());
+        } catch(e) {
+          this.log(`${ prefix } - unable to expose device: ${ e.message }`);
+          return false;
+        }
       } else {
         this.log(`${ prefix } - device not exposed`);
       }
@@ -371,7 +388,12 @@ module.exports = class HomeKitty extends Homey.App {
 
   async exit() {
     await this.#bridge.unpublish();
-    process.exit(1);
+    await this.notify(this.homey.i18n.__('app.stopping'));
+    process.exit(0);
+  }
+
+  async notify(excerpt) {
+    await this.homey.notifications.createNotification({ excerpt });
   }
 
   async watchDevices() {
@@ -430,15 +452,24 @@ module.exports = class HomeKitty extends Homey.App {
 
     async exposeDevice(id) {
       const device = await this.getDeviceById(id);
+      if (! device) {
+        throw Error('API_ADD_DEVICE_FAILED');
+      }
 
-      // update exposure state
+      // update exposure state (before we try to add it)
+      const oldExposureState = this.#exposed.get(id);
       this.#exposed.set(id, true);
       this.#exposed.save();
 
       if (! await this.addDeviceToHomeKit(device)) {
-        this.#exposed.set(id, false);
+        // restore old exposure state
+        this.#exposed.set(id, oldExposureState);
         this.#exposed.save();
-        throw Error('unable to add device');
+        // throw the appropriate exception
+        if (this.#bridge.bridgedAccessories.length >= 149) {
+          throw Error('API_DEVICE_LIMIT_REACHED');
+        }
+        throw Error('API_ADD_DEVICE_FAILED');
       }
 
       // done
@@ -446,8 +477,13 @@ module.exports = class HomeKitty extends Homey.App {
     },
 
     async unexposeDevice(id) {
-      if (! await this.deleteDeviceFromHomeKit({ id })) {
-        throw Error('unable to delete device');
+      // check if device was actually added (it may not have because the
+      // HomeKit limit was reached); if not, we'll just set its exposure
+      // state to false for the future.
+      let accessory = this.getAccessoryById(id);
+
+      if (accessory && ! await this.deleteDeviceFromHomeKit({ id })) {
+        throw Error('API_DELETE_DEVICE_FAILED');
       }
 
       // update exposure state
@@ -481,6 +517,13 @@ class StorageBackedMap extends Map {
   set(key, value) {
     this.#dirty = this.#dirty || this.get(key) !== value;
     return super.set(key, value);
+  }
+
+  setAll(value) {
+    for (const key of this.keys()) {
+      this.set(key, value);
+    }
+    this.save();
   }
 
   delete(key) {
