@@ -229,6 +229,14 @@ body {
     }
   }
 
+  span.back {
+    font-weight:     normal;
+    text-decoration: underline;
+    color:           blue;
+    position:        absolute;
+    right:           0.5em;
+  }
+
   .list {
     margin-bottom: 1.5em;
 

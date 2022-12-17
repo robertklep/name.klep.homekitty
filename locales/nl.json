@@ -1,5 +1,6 @@
 {
   "settings": {
+    "back" : "Terug",
     "main" : {
       "homekit-publishing" : {
         "title" : "homekit instellingen",

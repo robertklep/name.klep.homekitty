@@ -88,7 +88,7 @@
 
     <div :class='{ active : currentPage === "devices", page : true }'>
       <header>
-        <i class='arrow left' @click='setPage("main")'></i>
+        <span class='back' @click='setPage("main")' data-i18n='settings.back'>Done</span>
         <span data-i18n='settings.devices.header'>Devices</span>
         <div class='search'>
           <input type=text :placeholder='Homey.__("settings.devices.search-placeholder")' autocapitalize='off' v-model='search' @keyup='onKeyUp'>
@@ -126,7 +126,7 @@
 
     <div :class='{ active : currentPage === "expose-all", page : true }'>
       <header>
-        <i class='arrow left' @click='setPage("main")'></i>
+        <span class='back' @click='setPage("main")' data-i18n='settings.back'>Done</span>
         <span data-i18n='settings.expose-all.title'>Publish All</span>
       </header>
       <div class='list'>
@@ -143,7 +143,7 @@
 
     <div :class='{ active : currentPage === "unexpose-all", page : true }'>
       <header>
-        <i class='arrow left' @click='setPage("main")'></i>
+        <span class='back' @click='setPage("main")' data-i18n='settings.back'>Done</span>
         <span data-i18n='settings.unexpose-all.title'>Remove All</span>
       </header>
       <div class='list'>
@@ -160,7 +160,7 @@
 
     <div :class='{ active : currentPage === "identifier", page : true }'>
       <header>
-        <i class='arrow left' @click='setPage("main")'></i>
+        <span class='back' @click='setPage("main")' data-i18n='settings.back'>Done</span>
         <span data-i18n='settings.identifier.title'>Bridge Identifier</span>
       </header>
       <div class='list'>
@@ -187,7 +187,7 @@
 
     <div :class='{ active : currentPage === "qrcode", page : true }'>
       <header>
-        <i class='arrow left' @click='setPage("main")'></i>
+        <span class='back' @click='setPage("main")' data-i18n='settings.back'>Done</span>
         QR Code
       </header>
       <div class='list'>
@@ -201,7 +201,7 @@
 
     <div :class='{ active : currentPage === "reset", page : true }'>
       <header>
-        <i class='arrow left' @click='setPage("main")'></i>
+        <span class='back' @click='setPage("main")' data-i18n='settings.back'>Done</span>
         Reset
       </header>
       <div class='list'>

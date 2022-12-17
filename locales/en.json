@@ -1,5 +1,6 @@
 {
   "settings": {
+    "back" : "Done",
     "main": {
       "homekit-publishing": {
         "title": "homekit publishing",
