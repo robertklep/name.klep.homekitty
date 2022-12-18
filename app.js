@@ -142,7 +142,9 @@ module.exports = class HomeKitty extends Homey.App {
   async initializeWebApi() {
     this.#api = new HomeyAPIApp({ homey: this.homey });
 
-    // have to do this really early to work around a bug in the Web API
+    // have to do this really early to work around a bug in the Web API (if
+    // `getDevices()` is called before `connect()`, a call to `getDevices()`
+    // _after_ `connect()` will not yield any results).
     await this.#api.devices.connect();
   }
 
