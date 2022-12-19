@@ -53,7 +53,7 @@ function onHomeyReady(Homey) {
         Homey.confirm(msg, icon, (_, response) => resolve(response));
       });
     },
-    _request(method, endpoint, data = null) {
+    _request(method, endpoint, data = {}) {
       return new Promise((resolve, reject) => {
         Homey.api(method, endpoint, data, (err, result) => {
           if (err) {
