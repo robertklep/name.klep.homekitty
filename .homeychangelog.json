@@ -25,5 +25,8 @@
   },
   "1.2.1": {
     "en": "Fixed issue with positionless window coverings"
+  },
+  "1.2.2": {
+    "en": "Fixed issue with Homey.api()"
   }
 }
