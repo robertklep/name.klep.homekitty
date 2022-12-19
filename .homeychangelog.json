@@ -22,5 +22,8 @@
   },
   "1.2.0": {
     "en": "Rewrote app settings, bugfixes and additiona device support"
+  },
+  "1.2.1": {
+    "en": "Fixed issue with positionless window coverings"
   }
 }
