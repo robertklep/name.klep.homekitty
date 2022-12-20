@@ -37,5 +37,8 @@
   },
   "1.2.5": {
     "en": "Hopefully last fix for positionless window coverings"
+  },
+  "1.2.6": {
+    "en": "Prevent virtual devices to lose their configuration"
   }
 }
