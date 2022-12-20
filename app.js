@@ -29,6 +29,7 @@ module.exports = class HomeKitty extends Homey.App {
   #watching      = false;
   #devicesMapped = defer();
   #bridgeReady   = defer();
+  #bridgeStarted = defer();
   #exposed       = null;
 
   async onInit() {
@@ -65,8 +66,25 @@ module.exports = class HomeKitty extends Homey.App {
     // watch for device updates
     await this.watchDevices();
 
+    // schedule the second stage of `onInit()`; which is required because
+    // we need to wait for drivers and devices to be initialized before we
+    // continue.
+    setTimeout(() => this.onInit2());
+  }
+
+  async onInit2() {
+    // wait for all drivers and devices to become ready
+    const drivers = this.homey.drivers.getDrivers();
+    for (const driver of Object.values(drivers)) {
+      await driver.ready();
+      for (const device of driver.getDevices()) {
+        await device.ready();
+      }
+    }
+    this.log('all our drivers and devices ready');
+
     // start the bridge
-    await this.startBridge();
+    this.startBridge();
   }
 
   onUninit() {
@@ -187,6 +205,9 @@ module.exports = class HomeKitty extends Homey.App {
                 .setCharacteristic(Characteristic.SerialNumber,     uuid.generate(identifier))
                 .setCharacteristic(Characteristic.FirmwareRevision, Constants.BRIDGE_FIRMWARE_REVISION);
 
+    // Allow for virtual devices to add themselves to the bridge now.
+    this.#bridgeReady.resolve();
+
     // Listen for bridge identification events
     this.#bridge.on(AccessoryEventTypes.IDENTIFY, (paired, callback) => {
       this.log('`identify` called on bridge');
@@ -225,7 +246,7 @@ module.exports = class HomeKitty extends Homey.App {
       this.homey.settings.set(Constants.SETTINGS_BRIDGE_PORT,       port);
       this.homey.settings.set(Constants.SETTINGS_BRIDGE_SETUP_ID,   setupID);
       this.homey.settings.set(Constants.SETTINGS_BRIDGE_PINCODE,    pincode);
-      this.#bridgeReady.resolve();
+      this.#bridgeStarted.resolve();
     } catch(e) {
       this.error('  - unable to start! 😭');
       this.error(e);
