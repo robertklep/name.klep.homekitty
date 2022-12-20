@@ -28,5 +28,8 @@
   },
   "1.2.2": {
     "en": "Fixed issue with Homey.api()"
+  },
+  "1.2.3": {
+    "en": "Fixed issue with state-only window coverings"
   }
 }
