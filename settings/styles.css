@@ -351,8 +351,8 @@ body {
   margin: 0;
 }
 .homekitty .list ul li.device-card figure img {
-  height: inherit;
-  object-fit: contain;
+  max-width: 100%;
+  max-height: 100%;
 }
 .homekitty span.danger {
   color: var(--hk-danger-color) !important;
