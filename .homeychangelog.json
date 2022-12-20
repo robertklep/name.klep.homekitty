@@ -31,5 +31,8 @@
   },
   "1.2.3": {
     "en": "Fixed issue with state-only window coverings"
+  },
+  "1.2.4": {
+    "en": "Fix more issues with state-only window coverings"
   }
 }
