@@ -326,6 +326,7 @@ module.exports = class HomeKitty extends Homey.App {
           this.#bridge.addBridgedAccessory(mappedDevice.accessorize());
         } catch(e) {
           this.log(`${ prefix } - unable to expose device: ${ e.message }`);
+          this.error(e);
           return false;
         }
       } else {
