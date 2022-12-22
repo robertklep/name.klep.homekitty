@@ -16,7 +16,9 @@ assignees: ''
 Yes/No/Don't Know
 
 ### Device Classes
-(find the device [here](https://tools.developer.homey.app/tools/devices) and post its class and virtual class, if it has one)
+Find the device here: https://tools.developer.homey.app/tools/devices
+
+What are it's class, and virtual class (if it has one)?
 
 * _Class_:
 * _Virtual Class_:
