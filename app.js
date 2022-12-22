@@ -354,7 +354,7 @@ module.exports = class HomeKitty extends Homey.App {
   async deleteDeviceFromHomeKit(device) {
     let accessory = this.getAccessoryById(device.id);
     if (! accessory) return false;
-    this.log(`removing device with id ${ device.id } from HomeKit:`);
+    this.log(`[${ device.id }] removing device from HomeKit:`);
     try {
       this.#bridge.removeBridgedAccessory(accessory);
       await accessory.destroy();
@@ -373,7 +373,7 @@ module.exports = class HomeKitty extends Homey.App {
   }
 
   async getDeviceById(id) {
-    return this.#api.devices.getDevice({ id });
+    return await this.#api.devices.getDevice({ id });
   }
 
   isVirtualDevice(device) {
