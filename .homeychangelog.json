@@ -40,5 +40,8 @@
   },
   "1.2.6": {
     "en": "Prevent virtual devices to lose their configuration"
+  },
+  "1.2.7": {
+    "en": "Added support for Eufy Security doorbell device"
   }
 }
