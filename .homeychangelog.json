@@ -43,5 +43,8 @@
   },
   "1.2.7": {
     "en": "Added support for Eufy Security doorbell device"
+  },
+  "1.2.8": {
+    "en": "Updated to latest version of homey-api and extended contact sensor map to allow \"other\" class"
   }
 }
