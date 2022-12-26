@@ -9,8 +9,13 @@ module.exports = class FlowStarterDevice extends VirtualDevice {
     this.#onButtonPressTrigger = this.homey.flow.getDeviceTriggerCard('buttonpress');
 
     await this.setUnavailable();
-    await this.accessorize();
-    await this.setAvailable();
+    try {
+      await this.accessorize();
+      await this.setAvailable();
+    } catch(e) {
+      this.error(`FlowStarterDevice couldn't be started`);
+      this.error(e);
+    }
   }
 
   async accessorize() {
