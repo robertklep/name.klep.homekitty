@@ -46,5 +46,8 @@
   },
   "1.2.8": {
     "en": "Updated to latest version of homey-api and extended contact sensor map to allow \"other\" class"
+  },
+  "1.2.9": {
+    "en": "Rewrote state-based windowcoverings mapper"
   }
 }
