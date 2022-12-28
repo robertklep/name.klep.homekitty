@@ -113,7 +113,7 @@ module.exports = class HomeKitty extends Homey.App {
         this.error(`- failed 😭`);
         this.error(e);
         // cannot continue
-        throw Error('Internal Error (mkdir)');
+        throw Error(`Internal Error (mkdir: ${ e.message })`);
       }
     }
     this.log(`changing to persistence directory:`);
@@ -124,7 +124,7 @@ module.exports = class HomeKitty extends Homey.App {
       this.error(`- failed 😭`);
       this.error(e);
       // cannot continue
-      throw Error('Internal Error (chdir)');
+      throw Error(`Internal Error (chdir: ${ e.message })`);
     }
   }
 
@@ -251,7 +251,7 @@ module.exports = class HomeKitty extends Homey.App {
       this.error('  - unable to start! 😭');
       this.error(e);
       // cannot continue
-      throw Error('Internal Error (publish)');
+      throw Error(`Internal Error (publish: ${ e.message })`);
     }
   }
 
