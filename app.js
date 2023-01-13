@@ -440,18 +440,34 @@ module.exports = class HomeKitty extends Homey.App {
     this.#api.devices.on('device.update', debounce(async (device) => {
       if (device?.driverUri === 'homey:app:name.klep.homekitty') return;
       this.log(`[EV] device updated — name=${ device.name} id=${ device.id } driver=${ device.driverUri }`);
+      if (! device.ready || ! device.capabilitiesObj) {
+        this.log(`- device incomplete, skipping further handling for now`);
+        return;
+      }
 
       // check if device is already exposed through HomeKit
       let accessory = this.getAccessoryById(device.id);
+      let addDevice = true;
       if (accessory) {
-        this.log('- already exposed via HomeKit, will delete to update');
-        // delete existing accessory and try adding it again
-        await this.deleteDeviceFromHomeKit(device);
+        this.log(`- already exposed via HomeKit (reachable: ${ !!device.available })`);
+        // check if capabilities have changed
+        const capsBefore = [...DeviceMapper.getDeviceById(device.id).getCapabilities()].sort().join(',');
+        const capsAfter  = [...device.capabilities].sort().join(',');
+        if (capsBefore !== capsAfter) {
+          this.log(`- capabilities have changed (before=${ capsBefore} after=${ capsAfter })`)
+          this.log(`- will have to add device again as new`);
+          await this.deleteDeviceFromHomeKit(device);
+        } else {
+          // device hasn't changed
+          addDevice = false;
+        }
       } else {
         this.log('- not yet exposed via HomeKit, will add it as new');
       }
-      if (await this.addDeviceToHomeKit(device)) {
-        await this.#exposed.save();
+      if (addDevice) {
+        if (await this.addDeviceToHomeKit(device)) {
+          await this.#exposed.save();
+        }
       }
     }, 500));
   }
