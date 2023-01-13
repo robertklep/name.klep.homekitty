@@ -49,5 +49,8 @@
   },
   "1.2.9": {
     "en": "Rewrote state-based windowcoverings mapper"
+  },
+  "1.2.10": {
+    "en": "Work around Web API bug"
   }
 }
