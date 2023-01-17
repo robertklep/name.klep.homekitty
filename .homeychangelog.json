@@ -52,5 +52,8 @@
   },
   "1.2.10": {
     "en": "Work around Web API bug"
+  },
+  "1.3.0": {
+    "en": "Better handle device update events"
   }
 }
