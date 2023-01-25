@@ -204,11 +204,16 @@ function onHomeyReady(Homey) {
       };
       // eslint-disable-next-line
       const fuse = new Fuse(this.devices, options);
+      let list;
       if (this.search.length > 2) {
-        return fuse.search(this.search).filter(filter);
+        list = fuse.search(this.search).filter(filter);
       } else {
-        return this.devices.filter ? this.devices.filter(filter) : this.devices;
+        list = this.devices.filter ? this.devices.filter(filter) : this.devices;
       }
+      return list.sort ? list.sort((a, b) => {
+        // sort devices on zone name first, device name second
+        return (a.zoneName || 'ZZZ').localeCompare(b.zoneName || 'ZZZ') || a.name.localeCompare(b.name);
+      }) : list;
     },
   }).mount('#homekitty');
 }
