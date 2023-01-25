@@ -64,5 +64,8 @@
   },
   "1.4.0": {
     "en": "Debounce dim/brightness changes"
+  },
+  "1.4.1": {
+    "en": "Sort device list"
   }
 }
