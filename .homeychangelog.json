@@ -70,5 +70,8 @@
   },
   "1.4.2": {
     "en": "Upgraded to latest homey-api"
+  },
+  "1.4.3": {
+    "en": "Fix issue with buttons being triggered too many times"
   }
 }
