@@ -5,7 +5,7 @@ const debounce                      = require('debounce');
 const Homey                         = require('homey');
 const Constants                     = require('./constants');
 const DeviceMapper                  = require('./lib/device-mapper');
-const { HomeyAPIApp }               = require('./modules/homey-api');
+const { HomeyAPI }                  = require('./modules/homey-api');
 const {
   Bridge, Service, Characteristic,
   Accessory, AccessoryEventTypes, uuid } = require('./modules/hap-nodejs');
@@ -158,7 +158,7 @@ module.exports = class HomeKitty extends Homey.App {
   }
 
   async initializeWebApi() {
-    this.#api = new HomeyAPIApp({ homey: this.homey });
+    this.#api = await HomeyAPI.createAppAPI({ homey: this.homey });
 
     // have to do this really early to work around a bug in the Web API (if
     // `getDevices()` is called before `connect()`, a call to `getDevices()`
