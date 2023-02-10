@@ -372,7 +372,18 @@ module.exports = class HomeKitty extends Homey.App {
   }
 
   async getDevices() {
-    return await this.#api.devices.getDevices();
+    // HomeyAPIV3 doesn't set zoneName property (unlike V2)
+    // so we'll set it ourselves.
+    const [ zones, devices ] = await Promise.all([
+      this.#api.zones.getZones(),
+      this.#api.devices.getDevices()
+    ]);
+
+    for (const device of Object.values(devices)) {
+      device.zoneName = zones[device.zone].name;
+    }
+
+    return devices;
   }
 
   async getDeviceById(id) {
