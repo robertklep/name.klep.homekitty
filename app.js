@@ -54,11 +54,19 @@ module.exports = class HomeKitty extends Homey.App {
     // initialize Homey Web API
     await this.initializeWebApi();
 
-    // wait for devices to settle
-    await this.settleDevices();
-
     // configure the bridge
     await this.configureBridge();
+
+    // start second stage, since `onInit` isn't allowed to take longer than 30
+    // seconds and we might need to wait for devices to settle first after
+    // a reboot; we also need to wait for our own drivers/devices to be
+    // initialized before we continue.
+    this.onInit2();
+  }
+
+  async onInit2() {
+    // wait for devices to settle
+    await this.settleDevices();
 
     // map all supported devices
     await this.mapDevices();
@@ -66,13 +74,6 @@ module.exports = class HomeKitty extends Homey.App {
     // watch for device updates
     await this.watchDevices();
 
-    // schedule the second stage of `onInit()`; which is required because
-    // we need to wait for drivers and devices to be initialized before we
-    // continue.
-    setTimeout(() => this.onInit2());
-  }
-
-  async onInit2() {
     // wait for all drivers and devices to become ready
     const drivers = this.homey.drivers.getDrivers();
     for (const driver of Object.values(drivers)) {
