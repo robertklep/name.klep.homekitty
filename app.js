@@ -459,6 +459,11 @@ module.exports = class HomeKitty extends Homey.App {
         return;
       }
 
+      // newly created devices are not passed as instance anymore
+      if (! device.makeCapabilityInstance) {
+        device = await this.#api.devices.getDevice({ id : device.id });
+      }
+
       // check if device is already exposed through HomeKit
       let accessory = this.getAccessoryById(device.id);
       let addDevice = true;
