@@ -469,15 +469,26 @@ module.exports = class HomeKitty extends Homey.App {
       let addDevice = true;
       if (accessory) {
         this.log(`- already exposed via HomeKit (reachable: ${ !!device.available })`);
+
+        // retrieve mapped device instance
+        const mappedDevice = DeviceMapper.getDeviceById(device.id);
+
         // check if capabilities have changed
-        const capsBefore = [...DeviceMapper.getDeviceById(device.id).getCapabilities()].sort().join(',');
+        const capsBefore = [...mappedDevice.getCapabilities()].sort().join(',');
         const capsAfter  = [...device.capabilities].sort().join(',');
         if (capsBefore !== capsAfter) {
-          this.log(`- capabilities have changed (before=${ capsBefore} after=${ capsAfter })`)
+          this.log(`- capabilities have changed (before=${ capsBefore } after=${ capsAfter })`)
           this.log(`- will have to add device again as new`);
           await this.deleteDeviceFromHomeKit(device);
-        } else {
-          // device hasn't changed
+        }
+        // check if device class has changed
+        else if (mappedDevice.getClass() !== device.class) {
+          this.log(`- device class has changed (before=${ mappedDevice.getClass() } after=${ device.class })`)
+          this.log(`- will have to add device again as new`);
+          await this.deleteDeviceFromHomeKit(device);
+        }
+        // device hasn't changed
+        else {
           addDevice = false;
         }
       } else {
