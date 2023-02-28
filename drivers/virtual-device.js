@@ -1,5 +1,5 @@
 const { Device }                                   = require('homey');
-const { Accessory, Service, Characteristic, uuid } = require('../../modules/hap-nodejs');
+const { Accessory, Service, Characteristic, uuid } = require('../modules/hap-nodejs');
 
 module.exports = class VirtualDevice extends Device {
   #accessory = null;
