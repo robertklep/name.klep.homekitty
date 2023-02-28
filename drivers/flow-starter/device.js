@@ -28,7 +28,6 @@ module.exports = class FlowStarterDevice extends VirtualDevice {
     // by automatically turning it off after 300ms
     const turnOff = () => {
       setTimeout(() => {
-        this.setCapabilityValue('button', false);
         characteristic.updateValue(false);
       }, 300);
     }
@@ -36,8 +35,6 @@ module.exports = class FlowStarterDevice extends VirtualDevice {
     // called when the button is pressed from HomeKit
     characteristic.onSet(async value => {
       if (! value) return;
-      // turn the switch on
-      await this.setCapabilityValue('button', true);
       // trigger the flow
       await this.triggerFlow();
       // turn the switch off again after 300ms
