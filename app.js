@@ -392,11 +392,11 @@ module.exports = class HomeKitty extends Homey.App {
   }
 
   isVirtualDevice(device) {
-    return device?.driverUri === 'homey:app:name.klep.homekitty';
+    return !!device?.driverId?.startsWith('homey:app:name.klep.homekitty:');
   }
 
   isHomeyDevice(device) {
-    return device?.driverUri === 'homey:manager:vdevice' && device?.driverId === 'homey';
+    return !!device?.driverId === 'homey:manager:vdevice:homey';
   }
 
   async reset(delayedExit = false) {
