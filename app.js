@@ -439,12 +439,12 @@ module.exports = class HomeKitty extends Homey.App {
     this.#watching = true;
 
     this.#api.devices.on('device.create', device => {
-      if (device?.driverUri === 'homey:app:name.klep.homekitty') return;
-      this.log(`[EV] device created — name=${ device.name} id=${ device.id } driver=${ device.driverUri }`);
+      if (this.isVirtualDevice(device)) return;
+      this.log(`[EV] device created — name=${ device.name} id=${ device.id } driver=${ device.driverId }`);
     });
 
     this.#api.devices.on('device.delete', async (device) => { // really just `{ id }`
-      if (device?.driverUri === 'homey:app:name.klep.homekitty') return;
+      if (this.isVirtualDevice(device)) return;
       this.log(`[EV] device deleted — id=${ device.id }`);
       await this.deleteDevice(device);
     });
@@ -452,8 +452,8 @@ module.exports = class HomeKitty extends Homey.App {
     // debounce update events because they may get emitted
     // multiple times during device creation
     this.#api.devices.on('device.update', debounce(async (device) => {
-      if (device?.driverUri === 'homey:app:name.klep.homekitty') return;
-      this.log(`[EV] device updated — name=${ device.name} id=${ device.id } driver=${ device.driverUri }`);
+      if (this.isVirtualDevice(device)) return;
+      this.log(`[EV] device updated — name=${ device.name} id=${ device.id } driver=${ device.driverId }`);
       if (! device.ready || ! device.capabilitiesObj) {
         this.log(`- device incomplete, skipping further handling for now`);
         return;
