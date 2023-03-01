@@ -73,5 +73,8 @@
   },
   "1.4.3": {
     "en": "Fix issue with buttons being triggered too many times"
+  },
+  "2.0.0": {
+    "en": "Compatibility with HP2023 and `homey-api@3`"
   }
 }
