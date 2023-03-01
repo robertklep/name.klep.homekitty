@@ -12,8 +12,14 @@ assignees: ''
 ### Type (brand/model) of device
 ...
 
+### Homey Model
+- [ ] "old" Homey (Pro)
+- [ ] Homey Pro 2023
+
 ### Is it supported by HomeyKit?
-Yes/No/Don't Know
+- [ ] Yes
+- [ ] No
+- [ ] I don't know
 
 ### Device Classes
 Find the device here: https://tools.developer.homey.app/tools/devices
