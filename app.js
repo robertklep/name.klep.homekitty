@@ -170,10 +170,14 @@ module.exports = class HomeKitty extends Homey.App {
   async settleDevices() {
     // If Homey has booted in the last 10 minutes, we'll wait a while for all
     // devices to get created properly before we start.
-    const uptime = (await this.#api.system.getInfo()).uptime;
-    if (uptime > 600) {
-      this.log('no need to wait for devices to settle');
-      return;
+    try {
+      const uptime = (await this.#api.system.getInfo()).uptime;
+      if (uptime > 600) {
+        this.log('no need to wait for devices to settle');
+        return;
+      }
+    } catch(e) {
+      // ignored, as most likely the `getInfo()` call timed out
     }
 
     this.log('Homey was rebooted recently, waiting for devices to settle...');
