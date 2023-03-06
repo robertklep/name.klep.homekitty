@@ -76,5 +76,8 @@
   },
   "2.0.0": {
     "en": "Compatibility with HP2023 and `homey-api@3`"
+  },
+  "2.0.1": {
+    "en": "Keep track of target state for home alarms"
   }
 }
