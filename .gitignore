@@ -3,3 +3,4 @@ node_modules
 .homeybuild
 debug
 assets/originals/
+modules/hap-nodejs/README
