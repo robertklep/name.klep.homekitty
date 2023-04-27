@@ -79,5 +79,8 @@
   },
   "2.0.1": {
     "en": "Keep track of target state for home alarms"
+  },
+  "2.1.0": {
+    "en": "Fixed issue introduced by rc88"
   }
 }
