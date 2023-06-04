@@ -82,5 +82,8 @@
   },
   "2.1.0": {
     "en": "Fixed issue introduced by rc88"
+  },
+  "2.2.0": {
+    "en": "Added option to delay start after Homey reboot"
   }
 }
