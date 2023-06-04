@@ -13,6 +13,7 @@ function onHomeyReady(Homey) {
     search:                     '',
     currentPage:                'main',
     bridgeIdentifier:           null,
+    delayAfterReboot:           0,
     newBridgeIdentifier:        null,
     hasBridgeIdentifierChanged: false,
     newDevicePublish:           true,
@@ -25,6 +26,12 @@ function onHomeyReady(Homey) {
     },
     async onChangeNewDevicePublish(ev) {
       await this.setSetting('Settings.NewDevicePublish', this.newDevicePublish);
+    },
+    async onChangeDelayAfterReboot(ev) {
+      if (this.delayAfterReboot < 0) {
+        this.delayAfterReboot = 0;
+      }
+      await this.setSetting('App.DelayAfterReboot', this.delayAfterReboot);
     },
     async onChangeFilter(ev) {
       await this.setSetting('Settings.Filters', this.filters);
@@ -163,6 +170,7 @@ function onHomeyReady(Homey) {
 
       // load settings
       this.bridgeIdentifier    = await this.getSetting('Bridge.Identifier');
+      this.delayAfterReboot    = await this.getSetting('App.DelayAfterReboot') || 0;
       this.filters             = await this.getSetting('Settings.Filters') || this.filters;
       this.newDevicePublish    = await this.getSetting('Settings.NewDevicePublish') ?? true;
       this.newBridgeIdentifier = this.bridgeIdentifier;

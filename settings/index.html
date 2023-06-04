@@ -54,6 +54,30 @@
       </div>
 
       <div class='list'>
+        <p data-i18n='settings.main.app-start-behaviour.title'>startup behaviour</p>
+        <ul>
+          <li>
+            <span data-i18n='settings.main.app-start-behaviour.delay-after-reboot'>
+              Delay start after reboot
+            </span>
+            <span>
+              <input type='number' v-model='delayAfterReboot' @change='onChangeDelayAfterReboot' min=0 style='
+                border: none;
+                width: 5em;
+                text-align: right;
+              '>
+              <span data-i18n='settings.main.app-start-behaviour.delay-after-reboot-unit'>
+                seconds
+              </span>
+            </span>
+          </li>
+        </ul>
+        <p data-i18n='settings.main.app-start-behaviour.description'>
+          Configure how HomeKitty should start.
+        </p>
+      </div>
+
+      <div class='list'>
         <p data-i18n='settings.main.app-settings.title'>app settings</p>
         <ul>
           <li>

@@ -13,6 +13,12 @@
         "switch": "Publish to HomeKit",
         "description": "Select what should happen when new devices are added to Homey."
       },
+      "app-start-behaviour" : {
+        "title" : "startup behaviour",
+        "delay-after-reboot" : "Delay start after reboot",
+        "delay-after-reboot-unit" : "seconds",
+        "description" : "Configure how HomeKitty should start."
+      },
       "app-settings": {
         "title": "app settings"
       },

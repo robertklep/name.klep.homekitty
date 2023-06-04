@@ -179,8 +179,16 @@ module.exports = class HomeKitty extends Homey.App {
     } catch(e) {
       // ignored, as most likely the `getInfo()` call timed out
     }
+    this.log('Homey was rebooted recently');
 
-    this.log('Homey was rebooted recently, waiting for devices to settle...');
+    // Check if the user has configured a delayed start
+    const delayAppStart = Number(this.homey.settings.get(Constants.SETTINGS_APP_DELAY_AFTER_REBOOT) || 0);
+    if (delayAppStart >= 0) {
+      this.log(`Delaying app start for ${ delayAppStart } seconds...`);
+      await delay(delayAppStart * 1000);
+    }
+
+    this.log('Waiting for devices to settle...');
 
     // Check every minute if the number of devices has changed. Once it hasn't,
     // we'll assume all devices have been created and we can continue.
