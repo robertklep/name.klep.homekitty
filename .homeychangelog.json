@@ -85,5 +85,8 @@
   },
   "2.2.0": {
     "en": "Added option to delay start after Homey reboot"
+  },
+  "2.2.1": {
+    "en": "Support devices of class \"sensor\" and capability \"button\""
   }
 }
