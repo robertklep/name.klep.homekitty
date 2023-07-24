@@ -88,5 +88,8 @@
   },
   "2.2.1": {
     "en": "Support devices of class \"sensor\" and capability \"button\""
+  },
+  "2.2.2": {
+    "en": "Update to latest `homey-api` and added battery support"
   }
 }
