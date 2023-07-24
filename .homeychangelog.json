@@ -97,5 +97,8 @@
   },
   "2.2.4": {
     "en": "Added tamper state for other sensors"
+  },
+  "2.2.5": {
+    "en": "Use alarm_battery for low battery status"
   }
 }
