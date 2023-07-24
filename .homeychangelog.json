@@ -91,5 +91,8 @@
   },
   "2.2.2": {
     "en": "Update to latest `homey-api` and added battery support"
+  },
+  "2.2.3": {
+    "en": "Added optional tamper state for water leak sensors'"
   }
 }
