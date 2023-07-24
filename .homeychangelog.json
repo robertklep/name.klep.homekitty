@@ -94,5 +94,8 @@
   },
   "2.2.3": {
     "en": "Added optional tamper state for water leak sensors'"
+  },
+  "2.2.4": {
+    "en": "Added tamper state for other sensors"
   }
 }
