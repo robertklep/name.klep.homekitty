@@ -100,5 +100,8 @@
   },
   "2.2.5": {
     "en": "Use alarm_battery for low battery status"
+  },
+  "2.2.7": {
+    "en": "Partially reverted changes made in v2.2.6"
   }
 }
