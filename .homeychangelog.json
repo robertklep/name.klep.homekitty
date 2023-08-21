@@ -106,5 +106,8 @@
   },
   "2.2.8": {
     "en": "Added support for onoff locks (Bold)"
+  },
+  "2.2.9": {
+    "en": "Fix issue with Bold locks"
   }
 }
