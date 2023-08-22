@@ -112,5 +112,8 @@
   },
   "2.2.10": {
     "en": "Partial support for televisions"
+  },
+  "2.2.11": {
+    "en": "Fixed issue with tv map"
   }
 }
