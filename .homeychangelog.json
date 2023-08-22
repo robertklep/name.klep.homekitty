@@ -109,5 +109,8 @@
   },
   "2.2.9": {
     "en": "Fix issue with Bold locks"
+  },
+  "2.2.10": {
+    "en": "Partial support for televisions"
   }
 }
