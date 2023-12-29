@@ -115,5 +115,8 @@
   },
   "2.2.11": {
     "en": "Fixed issue with tv map"
+  },
+  "2.2.12": {
+    "en": "Allow outlets/sockets to be dimmable"
   }
 }
