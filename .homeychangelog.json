@@ -118,5 +118,8 @@
   },
   "2.2.12": {
     "en": "Allow outlets/sockets to be dimmable"
+  },
+  "2.2.13": {
+    "en": "Correctly set temperature display units for thermostat and heatercooler"
   }
 }
