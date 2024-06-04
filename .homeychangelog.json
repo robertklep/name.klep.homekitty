@@ -124,5 +124,8 @@
   },
   "2.2.14": {
     "en": "Fixed issue with thermostats that don't support `thermostat_mode`"
+  },
+  "2.2.15": {
+    "en": "Fixed issue with v2.2.14"
   }
 }
