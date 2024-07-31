@@ -127,5 +127,8 @@
   },
   "2.2.15": {
     "en": "Fixed issue with v2.2.14"
+  },
+  "2.2.16": {
+    "en": "Added support for `heatpump` device class"
   }
 }
