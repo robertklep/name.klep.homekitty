@@ -130,5 +130,8 @@
   },
   "2.2.16": {
     "en": "Added support for `heatpump` device class"
+  },
+  "2.2.17": {
+    "en": "Bugfix"
   }
 }
