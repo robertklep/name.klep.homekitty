@@ -136,5 +136,8 @@
   },
   "2.2.18": {
     "en": "Work around `button.remove_node` capabilities that get added to Matter devices"
+  },
+  "2.3.0": {
+    "en": "Only expose visible capabilities to iOS"
   }
 }
