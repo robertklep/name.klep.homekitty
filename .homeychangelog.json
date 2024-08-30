@@ -142,5 +142,8 @@
   },
   "2.3.1": {
     "en": "Tilt support for window coverings"
+  },
+  "2.3.2": {
+    "en": "Fixed issue with temperature units for thermostats"
   }
 }
