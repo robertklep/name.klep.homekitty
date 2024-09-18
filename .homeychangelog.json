@@ -145,5 +145,8 @@
   },
   "2.3.2": {
     "en": "Fixed issue with temperature units for thermostats"
+  },
+  "2.3.3": {
+    "en": "Also allow \"other\" device class to be considered for window coverings"
   }
 }
