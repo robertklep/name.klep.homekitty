@@ -151,5 +151,8 @@
   },
   "2.3.4": {
     "en": "Set Homekit target temperature limits to match Homey's"
+  },
+  "2.3.5": {
+    "en": "Hopefully fix issues with thermostat temperature units"
   }
 }
