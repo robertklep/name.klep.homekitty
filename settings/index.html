@@ -133,7 +133,7 @@
               <img :src="device.iconObj?.url || 'mock-icon.png'" :title="'id = ' + device.id + ', class = ' + device.class"/>
             </figure>
             <p>
-              <i>{{ device.zoneName || Homey.__("settings.devices.device.unknown-zone") }}</i><br>
+              <i>{{ device._zoneName || Homey.__("settings.devices.device.unknown-zone") }}</i><br>
               {{ device.name }}
             </p>
             <i class='switch'>

@@ -393,7 +393,7 @@ module.exports = class HomeKitty extends Homey.App {
     ]);
 
     for (const device of Object.values(devices)) {
-      device.zoneName = zones[device.zone].name;
+      device._zoneName = zones[device.zone].name;
     }
 
     return devices;

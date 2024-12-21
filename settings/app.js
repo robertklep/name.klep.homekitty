@@ -201,7 +201,7 @@ function onHomeyReady(Homey) {
         return this.filters.unsupported;
       };
       const options = {
-        keys:               [ 'name', 'zoneName', 'class' ],
+        keys:               [ 'name', '_zoneName', 'class' ],
         shouldSort:         true,
         findAllMatches:     true,
         threshold:          0.6,
@@ -220,7 +220,7 @@ function onHomeyReady(Homey) {
       }
       return list.sort ? list.sort((a, b) => {
         // sort devices on zone name first, device name second
-        return (a.zoneName || 'ZZZ').localeCompare(b.zoneName || 'ZZZ') || a.name.localeCompare(b.name);
+        return (a._zoneName || 'ZZZ').localeCompare(b._zoneName || 'ZZZ') || a.name.localeCompare(b.name);
       }) : list;
     },
   }).mount('#homekitty');
