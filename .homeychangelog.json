@@ -154,5 +154,8 @@
   },
   "2.3.5": {
     "en": "Hopefully fix issues with thermostat temperature units"
+  },
+  "2.4.0": {
+    "en": "Adaptive Lighting support"
   }
 }
