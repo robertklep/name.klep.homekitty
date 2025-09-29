@@ -4,3 +4,4 @@ node_modules
 debug
 assets/originals/
 modules/hap-nodejs/README
+.DS_Store
