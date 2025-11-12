@@ -160,5 +160,8 @@
   },
   "2.4.1": {
     "en": "Fixed issue with lights becoming dimmable when they weren't"
+  },
+  "2.4.2": {
+    "en": "Added support for \"airconditioning\" device class"
   }
 }
