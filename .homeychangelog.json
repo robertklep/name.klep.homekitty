@@ -163,5 +163,8 @@
   },
   "2.4.2": {
     "en": "Added support for \"airconditioning\" device class"
+  },
+  "2.4.3": {
+    "en": "Increased \"settle time after reboot\" to 30 minutes"
   }
 }
