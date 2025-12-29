@@ -166,5 +166,8 @@
   },
   "2.4.3": {
     "en": "Increased \"settle time after reboot\" to 30 minutes"
+  },
+  "2.4.4": {
+    "en": "Fixed issue with heater map"
   }
 }
