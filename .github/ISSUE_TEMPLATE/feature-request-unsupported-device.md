@@ -12,6 +12,15 @@ assignees: ''
 ### Type (brand/model) of device
 ...
 
+### Test version
+
+Have you tried if the [test version of HomeKitty](https://homey.app/a/name.klep.homekitty/test/) supports your device already?
+
+- [ ] Yes
+- [ ] No
+
+(please be aware that if you say "No" here, there's a big chance your issue will be closed with the comment to try out the test version first)
+
 ### Homey Model
 - [ ] "old" Homey (Pro)
 - [ ] Homey Pro 2023
