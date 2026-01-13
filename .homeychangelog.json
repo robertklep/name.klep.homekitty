@@ -169,5 +169,8 @@
   },
   "2.4.4": {
     "en": "Fixed issue with heater map"
+  },
+  "2.5.0": {
+    "en": "Support for `fan_speed` capability"
   }
 }
