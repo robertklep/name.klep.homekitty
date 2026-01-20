@@ -172,5 +172,8 @@
   },
   "2.5.0": {
     "en": "Support for `fan_speed` capability"
+  },
+  "2.5.1": {
+    "en": "Removed NIGHT mode from home alarm"
   }
 }
