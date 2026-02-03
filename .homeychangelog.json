@@ -175,5 +175,8 @@
   },
   "2.5.1": {
     "en": "Removed NIGHT mode from home alarm"
+  },
+  "2.5.2": {
+    "en": "Support thermostat devices with \"onoff\" capability"
   }
 }
