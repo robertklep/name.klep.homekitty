@@ -183,7 +183,7 @@ module.exports = class HomeKitty extends Homey.App {
 
     // Check if the user has configured a delayed start
     const delayAppStart = Number(this.homey.settings.get(Constants.SETTINGS_APP_DELAY_AFTER_REBOOT) || 0);
-    if (delayAppStart >= 0) {
+    if (delayAppStart > 0) {
       this.log(`Delaying app start for ${ delayAppStart } seconds...`);
       await delay(delayAppStart * 1000);
     }
