@@ -178,5 +178,8 @@
   },
   "2.5.2": {
     "en": "Support thermostat devices with \"onoff\" capability"
+  },
+  "2.5.3": {
+    "en": "Fixed crash issue with thermostat devices"
   }
 }
