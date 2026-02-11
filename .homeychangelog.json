@@ -181,5 +181,8 @@
   },
   "2.5.3": {
     "en": "Fixed crash issue with thermostat devices"
+  },
+  "2.5.4": {
+    "en": "Reverted changes to Home Alarm map"
   }
 }
