@@ -184,5 +184,8 @@
   },
   "2.5.4": {
     "en": "Reverted changes to Home Alarm map"
+  },
+  "2.5.5": {
+    "en": "Fixed issue with Adaptive Lighting discovery"
   }
 }
