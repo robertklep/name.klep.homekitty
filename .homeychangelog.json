@@ -187,5 +187,8 @@
   },
   "2.5.5": {
     "en": "Fixed issue with Adaptive Lighting discovery"
+  },
+  "2.5.6": {
+    "en": "Support for (onoff) sprinklers"
   }
 }
