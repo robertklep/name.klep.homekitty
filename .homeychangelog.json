@@ -190,5 +190,8 @@
   },
   "2.5.6": {
     "en": "Support for (onoff) sprinklers"
+  },
+  "2.5.7": {
+    "en": "Added support for occupancy sensors"
   }
 }
