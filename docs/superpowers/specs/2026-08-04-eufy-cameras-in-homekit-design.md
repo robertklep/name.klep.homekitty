@@ -363,3 +363,42 @@ Operational note, learned destructively: `homey app run` uninstalls the
 installed app for the duration and relies on its own `Ctrl-C` cleanup to put
 it back. Killing the process instead leaves HomeKitty **uninstalled**, taking
 the whole HomeKit bridge offline until it is reinstalled from the App Store.
+
+## Root cause of the "grey placeholder" report (2026-08-04)
+
+After install, the doorbell tile showed a dark image that looked like our
+fallback. It was not ours, and nothing was broken.
+
+Evidence, gathered by instrumenting the running app on the Homey (app settings
+were used as the readback channel, since app logs are not reachable from the
+CLI):
+
+```
+baseUrl        http://127.0.0.1:80        <- on-device, not the homeylocal URL
+mapperBaseUrl  http://127.0.0.1:80
+foundImage     Dörrklockan  - Snapshot -> /api/image/2de1e04f-…
+builtUrl       http://127.0.0.1:80/api/image/2de1e04f-…
+realPath       OK 79222B JPEG (27ms)      <- the real production code path
+```
+
+The production path — same modules, same URL construction, same
+`SnapshotSource` the delegate uses — fetched a valid JPEG in 27ms. Fetching
+was never the problem.
+
+Looking at the bytes settled it: **the Eufy app publishes its own placeholder**
+— a black 1024×573 JPEG carrying the eufy logo and the text "PLACEHOLDER
+IMAGE", exactly 79222 bytes — for any camera that has not yet had a snapshot
+taken. HomeKitty was correctly showing what Homey held.
+
+Running each camera's Flow once replaced 9 of the 10 Eufy images with real
+photographs (the tenth is a per-HomeBase "Event" image, which we do not use).
+Uterummet's came back as a 1920×1080 photo stamped with the minute its Flow
+ran, and the doorbell's as an 86KB photo of the driveway.
+
+**Two lessons worth keeping:**
+
+- `api.baseUrl` differs by environment: `http://127.0.0.1:80` on-device,
+  `https://<ip>.homey.homeylocal.com` from a remote/dev session. Reading it at
+  runtime rather than assuming either form is what made this work in both.
+- A new install shows the eufy placeholder until each camera's Flow has fired
+  once. Documented in `docs/eufy-cameras.md`; seed them by hand after setup.

@@ -10,6 +10,23 @@ The Homey Eufy app does not publish a video stream — it produces single JPEG
 snapshots. Tapping a camera for live video will fail. This is a limitation of
 the Eufy app, not of HomeKitty.
 
+## A brand new camera shows "PLACEHOLDER IMAGE"
+
+Until a camera has had its first snapshot taken, the Homey Eufy app publishes
+its own stand-in image: a black picture with the eufy logo and the words
+"PLACEHOLDER IMAGE". HomeKitty will faithfully show you that, because it is
+genuinely what Homey holds for the camera.
+
+This is not a fault. It means no snapshot has been taken yet.
+
+**After setting up your Flows, run each one once by hand** (Homey app → Flows →
+open the Flow → Test). That seeds a real picture for every camera. Otherwise a
+camera whose trigger has not fired — a doorbell nobody has pressed, say — keeps
+showing the eufy placeholder indefinitely.
+
+Run them one at a time. The Eufy app can only take one snapshot at a time, so
+firing several at once makes them cancel each other.
+
 ## You must create refresh Flows
 
 HomeKitty can read the camera image but **cannot ask for a new one**: Homey
