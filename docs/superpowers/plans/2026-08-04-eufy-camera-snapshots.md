@@ -1080,19 +1080,42 @@ git commit -m "Document the Eufy camera Flow requirement"
 This is the task that decides whether any of the above actually worked.
 Nothing before this proves HomeKit accepts the accessories.
 
-**Precondition:** HomeKitty from the App Store is installed under the same app
-id (`name.klep.homekitty`). `homey app run` will temporarily shadow it, and
-the bridge will drop off HomeKit for the duration. Confirm with the user
-before running, and be ready to `Ctrl-C` to restore the installed version.
+## ⚠️ Do not use `homey app run` for this
 
-- [ ] **Step 1: Run the app against the real Homey**
+Learned the hard way on 2026-08-04. Three separate problems, all real:
+
+1. **It cannot serve HomeKit.** With CLI 4.3.0, `homey app run` executes the
+   app in a **Docker container on the developer's Mac**, not on the Homey. The
+   HAP bridge binds inside that container, so its mDNS advertisement never
+   reaches the LAN and the Home app shows every accessory as offline.
+   HomeKit-facing behaviour therefore cannot be verified this way at all.
+2. **It takes the real app down.** It uninstalls the installed HomeKitty for
+   the duration, so the user's live bridge stops working while it runs.
+3. **Killing it does not restore anything.** The store version is reinstated by
+   the CLI's own cleanup on `Ctrl-C`. If the process is killed (`pkill -9`, a
+   crashed terminal), cleanup never runs and **HomeKitty is left uninstalled** —
+   which is exactly what happened, taking the user's whole HomeKit setup
+   offline until they reinstalled from the App Store.
+
+It also refuses to start at all until a manifest exists: upstream commits
+`app.json` as a stub, so you must first `cp .homeycompose/app.json app.json &&
+homey app build`, and revert that file afterwards so the stub is not committed.
+
+**Use `homey app install` instead** — it installs onto the Homey itself, where
+HAP can actually reach the network. Accept that it replaces the store build
+until the user reinstalls from the store.
+
+- [ ] **Step 1: Build the manifest, then install onto the Homey**
 
 ```bash
 cd ~/CascadeProjects/name.klep.homekitty
-homey app run
+cp .homeycompose/app.json app.json && homey app build   # upstream commits a stub
+homey app install
+git checkout app.json                                   # never commit the generated manifest
 ```
 
-Docker Desktop must be running.
+Docker Desktop must be running for the build step. Get the user's explicit
+consent first: this replaces their App Store build of HomeKitty.
 
 - [ ] **Step 2: Confirm the cameras were configured**
 
@@ -1141,6 +1164,35 @@ what worked, what did not, and the date. Then commit.
 git add docs/superpowers/specs/2026-08-04-eufy-cameras-in-homekit-design.md
 git commit -m "Record hardware verification results"
 ```
+
+## Status of this task as of 2026-08-04
+
+**Partially complete.** Verified on real hardware via `homey app run` before
+its limitations were understood:
+
+- App boots on the Homey with no errors.
+- `camera configured (Dörrklockan  - Snapshot)` — the doorbell attached a
+  CameraController successfully. This is the proof that the whole chain works:
+  map flag → `attachCamera` → base url → `findSnapshotImage` → `SnapshotSource`
+  → `createCameraController`.
+- Doorbell service built correctly:
+  `[NTFY_PRESS_DOORBELL] → [ProgrammableSwitchEvent]`.
+- All four cameras logged `was able to map 🥳`, so the Task 5 map matches real
+  devices.
+- Snapshot refresh verified end to end: triggering the Uterummet Flow changed
+  the image bytes within 12 seconds.
+
+**Still unverified:**
+
+- Home app rendering (camera tiles, video-doorbell presentation) — impossible
+  via `homey app run`, see above.
+- The placeholder fallback, which only fires on a real HomeKit snapshot request.
+- The four cameras attaching controllers: they are set to `false` in
+  HomeKitty's `HomeKit.Exposed` setting, so `accessorize()` never runs for
+  them. They must be enabled in HomeKitty's settings first. This is user
+  configuration, not a code defect.
+
+Redo the remaining checks with `homey app install`.
 
 ---
 
