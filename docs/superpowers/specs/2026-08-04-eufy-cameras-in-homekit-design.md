@@ -402,3 +402,57 @@ ran, and the doorbell's as an 86KB photo of the driveway.
   runtime rather than assuming either form is what made this work in both.
 - A new install shows the eufy placeholder until each camera's Flow has fired
   once. Documented in `docs/eufy-cameras.md`; seed them by hand after setup.
+
+## UNRESOLVED: HomeKit never requests a snapshot (2026-08-04)
+
+The camera tiles render, but iOS shows its own generic placeholder and
+**never issues a snapshot request** — verified by instrumenting
+`handleSnapshotRequest` and persisting every call to an app setting. Over
+10+ minutes, with the Home app opened and refreshed, zero requests arrived.
+
+### Ruled out by evidence, not assumption
+
+| Hypothesis | How it was tested | Result |
+|---|---|---|
+| Snapshot fetch fails on-device | Ran the real production path (same modules, same URL construction) inside the app | Works — valid JPEG in 27ms |
+| `api.baseUrl` wrong on-device | Logged it from the running app | `http://127.0.0.1:80`, fetches fine |
+| Wrong image selected | Logged the resolved image per device | Correct `- Snapshot` image each time |
+| Camera controller not attached | Logged every `attachCamera` | All 5 attached with valid URLs |
+| Controller not registered on accessory | Local test of `configureController` | `activeCameraController` is set |
+| Malformed camera service | Dumped published characteristics | Well-formed; hap-nodejs supplies a default `SupportedAudioStreamConfiguration` |
+| Bridge unpaired / no HAP session | User confirmed other bridged accessories (lights) respond | Bridge is paired and online |
+| Eufy publishing a placeholder image | Fetched and viewed the bytes | Was true initially; fixed by seeding. Real photos now served |
+
+### Leading hypothesis, still untested
+
+HAP cannot expose multiple cameras through a single endpoint
+([hap-nodejs IP Camera wiki](https://github.com/homebridge/HAP-NodeJS/wiki/IP-Camera):
+*"it's not possible to expose multiple cameras via a single HAP Endpoint"*,
+and bridged cameras "may result in unexpected behavior"). HomeKitty bridges
+everything via `addBridgedAccessory`, and we attached five cameras to one
+bridge.
+
+A first attempt to test this — skipping the camera controller for four of the
+five devices — was **invalid**: removing the controller server-side does not
+remove those accessories from iOS's cached database, so iOS still believed
+there were five cameras. The corrected experiment (keeping those four
+accessories off the bridge entirely, so iOS drops them) could not be installed:
+Athom's cloud API returned `Too many requests` after the session's many
+installs.
+
+### If the hypothesis holds
+
+The fix is to publish cameras as standalone accessories rather than bridging
+them — `Accessory.prototype.publish` and `unpublish` do exist in the vendored
+hap-nodejs, though `publishExternal` does not. Each camera would need its own
+HAP endpoint, port, username and pincode, with persistence for each, and the
+user would pair every camera separately in the Home app. That is how Homebridge
+handles cameras, and it would be a significant divergence from upstream
+HomeKitty's single-bridge architecture.
+
+### What is nonetheless proven
+
+Everything up to the HomeKit boundary works: device matching, controller
+attachment, image resolution, on-demand fetching, the placeholder fallback,
+and the Flow-driven refresh (verified — a Flow run changed the published bytes
+within 12 seconds, and the resulting images are real photographs).
