@@ -793,9 +793,12 @@ describe('eufy camera map', () => {
     assert.ok(mapped, 'camera should be mappable');
   });
 
-  it('marks the device as camera-capable', () => {
-    const mapped = DeviceMapper.mapDevice(eufyCamera({ id : 'test-camera-2' }));
-    assert.ok(mapped.getDevice().class === 'camera');
+  it('opts into the camera controller and the CAMERA category', () => {
+    const { Service, Characteristic, Accessory } = require('../../modules/hap-nodejs');
+    const map = require('../../lib/maps/camera-eufy')(DeviceMapper, Service, Characteristic, Accessory);
+    assert.strictEqual(map.camera, true, 'map must set camera:true or no CameraController is attached');
+    assert.strictEqual(map.category, Accessory.Categories.CAMERA);
+    assert.ok('NTFY_MOTION_DETECTION' in map.required);
   });
 
   it('does not map a camera without motion capabilities', () => {
@@ -926,19 +929,22 @@ describe('eufy doorbell map', () => {
     assert.ok(DeviceMapper.mapDevice(eufyDoorbell()));
   });
 
-  it('uses the VIDEO_DOORBELL accessory category', () => {
-    // 18 = Accessory.Categories.VIDEO_DOORBELL. This is what makes iOS show a
-    // doorbell notification with a picture instead of a plain alert.
-    const { Accessory } = require('../../modules/hap-nodejs');
-    assert.strictEqual(Accessory.Categories.VIDEO_DOORBELL, 18);
+  it('opts into the camera controller and keeps the VIDEO_DOORBELL category', () => {
+    // VIDEO_DOORBELL is what makes iOS show a doorbell notification with a
+    // picture instead of a plain alert, so it must survive the change.
+    const { Service, Characteristic, Accessory } = require('../../modules/hap-nodejs');
+    const map = require('../../lib/maps/doorbell-eufy')(DeviceMapper, Service, Characteristic, Accessory);
+    assert.strictEqual(map.camera, true, 'doorbell map must set camera:true');
+    assert.strictEqual(map.category, Accessory.Categories.VIDEO_DOORBELL);
   });
 });
 ```
 
-- [ ] **Step 2: Run the test to verify it fails or passes**
+- [ ] **Step 2: Run the test to verify it fails**
 
 Run: `npm test`
-Expected: PASS for both (the doorbell map already exists) — this test pins existing behaviour before the change.
+Expected: the first test PASSES (the doorbell map already exists, and this pins
+that it keeps working); the second FAILS on `map.camera` being `undefined`.
 
 - [ ] **Step 3: Extend `lib/maps/doorbell-eufy.js`**
 
