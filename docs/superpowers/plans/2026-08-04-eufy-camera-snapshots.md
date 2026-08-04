@@ -1052,7 +1052,19 @@ camera to keep the picture up to date — see
 - [ ] **Step 3: Verify the app still validates**
 
 Run: `homey app validate`
-Expected: validates against level `debug` with no new errors
+
+**Known to fail in this repo, for a pre-existing reason.** Upstream commits
+`app.json` as a generated stub (`{"_comment": "This file is generated..."}`);
+the real manifest is built from `.homeycompose/` at build time, and `validate`
+does not run that step. Expect:
+
+```
+✖ Could not find a valid Homey App at '...':
+Found 'app.json' file does not contain the required properties for a valid Homey app!
+```
+
+That is unrelated to this branch. `homey app run` DOES pre-process, which is
+why Task 8 still works. Treat any *different* failure as a real problem.
 
 - [ ] **Step 4: Commit**
 
