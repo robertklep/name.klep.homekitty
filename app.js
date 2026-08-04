@@ -306,6 +306,8 @@ module.exports = class HomeKitty extends Homey.App {
       this.error('could not determine API base url, cameras will be skipped:', e.message);
     }
 
+    require('./lib/camera/_diag2').install(this.homey); // TEMPORARY
+
     // get all devices and try to map them
     for (const [ id, device ] of Object.entries(await this.getDevices())) {
       await this.addDeviceToHomeKit(device);
@@ -380,7 +382,7 @@ module.exports = class HomeKitty extends Homey.App {
       category  : mappedDevice.getCategory(),
       pincode,
       setupID,
-      log       : message => this.log(`${ prefix } - camera ${ message }`),
+      log       : message => { require('./lib/camera/_diag2').record(`PUBLISHED ${ message }`); this.log(`${ prefix } - camera ${ message }`); },
     });
 
     // Record it so the pairing code is discoverable without reading the logs.

@@ -456,3 +456,55 @@ Everything up to the HomeKit boundary works: device matching, controller
 attachment, image resolution, on-demand fetching, the placeholder fallback,
 and the Flow-driven refresh (verified — a Flow run changed the published bytes
 within 12 seconds, and the resulting images are real photographs).
+
+## RESOLVED: cameras cannot be bridged (2026-08-04)
+
+The "no snapshot request" mystery is a HomeKit architectural constraint, not a
+defect in this code.
+
+**Cameras must be their own HAP endpoint.** A bridge is a single endpoint, and
+iOS simply ignores camera services on a bridged accessory. Confirmed by
+experiment: with five cameras bridged, and again with exactly one — after
+verifying iOS had genuinely re-read the accessory database, because the other
+four disappeared from the Home app — not a single snapshot request arrived.
+This is the same constraint that gives Homebridge its
+`publishExternalAccessories` API.
+
+### The fix
+
+`lib/camera/standalone.js` publishes camera accessories with
+`Accessory.publish()` rather than `Bridge.addBridgedAccessory()`. Username and
+port are derived deterministically from the device id (SHA-256, with the MAC's
+locally-administered bit set and multicast cleared), so a camera keeps its
+identity — and therefore its HomeKit pairing — across restarts. The bridge's
+pincode is reused, matching Homebridge's behaviour, and the pairing details are
+written to the `HomeKit.CameraAccessories` setting so they are discoverable
+without reading logs.
+
+Verified on hardware: the doorbell published on port 41494, advertised over
+mDNS as `_hap._tcp`, answered `470` on `/accessories` exactly as the working
+bridge does, and **iOS rendered it under a "Kameror" heading with a real camera
+tile** — which the bridged version never achieved.
+
+### A pre-existing upstream bug this exposed
+
+`lib/mapped-device.js` passed the accessory category as a third argument to the
+`Accessory` constructor:
+
+```js
+new Accessory(displayName, uuid, category)   // category silently ignored
+```
+
+That constructor takes `(displayName, UUID)` only — arity 2. Every HomeKitty
+accessory has therefore been category `1` (Other) for every user. Harmless
+while everything was bridged, since bridged accessories carry no category at
+all, but for a standalone camera the category is precisely what tells iOS "this
+is a camera". Fixed by assigning `accessory.category` after construction.
+**Worth reporting upstream independently of this feature.**
+
+### Cost of this approach
+
+Each camera is a separate HomeKit accessory needing its own pairing. Only the
+doorbell publishes standalone so far; `lib/maps/camera-eufy.js` deliberately
+does not set `camera: true` yet, so the other four stay bridged as motion
+sensors rather than presenting camera tiles that cannot work.
