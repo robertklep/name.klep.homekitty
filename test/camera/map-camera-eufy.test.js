@@ -43,4 +43,13 @@ describe('eufy camera map', () => {
     });
     assert.strictEqual(DeviceMapper.mapDevice(bare), null);
   });
+
+  it('does not route pet or vehicle detection to MotionDetected', () => {
+    const { Service, Characteristic, Accessory } = require('../../modules/hap-nodejs');
+    const map = require('../../lib/maps/camera-eufy')(DeviceMapper, Service, Characteristic, Accessory);
+    assert.ok(!('NTFY_PET_DETECTED' in map.required), 'NTFY_PET_DETECTED must not be in required');
+    assert.ok(!('NTFY_PET_DETECTED' in map.optional), 'NTFY_PET_DETECTED must not be in optional');
+    assert.ok(!('NTFY_VEHICLE_DETECTED' in map.required), 'NTFY_VEHICLE_DETECTED must not be in required');
+    assert.ok(!('NTFY_VEHICLE_DETECTED' in map.optional), 'NTFY_VEHICLE_DETECTED must not be in optional');
+  });
 });
