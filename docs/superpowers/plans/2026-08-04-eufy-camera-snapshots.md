@@ -832,14 +832,10 @@ module.exports = (Mapper, Service, Characteristic, Accessory) => ({
     }
   },
   optional : {
-    NTFY_PET_DETECTED : {
-      characteristics : Characteristic.MotionDetected,
-      ...Mapper.Accessors.Boolean
-    },
-    NTFY_VEHICLE_DETECTED : {
-      characteristics : Characteristic.MotionDetected,
-      ...Mapper.Accessors.Boolean
-    },
+    // NOTE: pet/vehicle/face notifications are deliberately NOT mapped here.
+    // Each mapped capability gets its own listener writing to the shared
+    // MotionDetected characteristic, so routing several of them to it makes
+    // competing writers and a `pet: false` event cancels live motion.
     measure_temperature : {
       characteristics : Characteristic.CurrentTemperature,
       get             : value => value

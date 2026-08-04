@@ -223,10 +223,22 @@ covers the moment that matters. Worth revisiting if battery holds up.
 
 ## Accessories produced
 
-**Cameras** → `CameraController` + `MotionSensor` (folding
-`NTFY_MOTION_DETECTION`, `alarm_motion`, and the face/pet/vehicle
-notifications into one `MotionDetected` characteristic) + `Battery` where
-present + `Switch` for `CMD_SET_FLOODLIGHT_MANUAL_SWITCH`.
+**Cameras** → `CameraController` + `MotionSensor` + `Battery` where present.
+
+**Only `NTFY_MOTION_DETECTION` drives `MotionDetected`.** An earlier draft of
+this spec folded `alarm_motion` and the face/pet/vehicle notifications into
+the same characteristic. That is not implementable here: HomeKitty gives every
+mapped capability its own listener writing to the shared characteristic
+instance, with no aggregation, so several capabilities on one characteristic
+become competing writers — an `NTFY_PET_DETECTED: false` event silently
+cancels live motion. Eufy fires `NTFY_MOTION_DETECTION` for essentially every
+motion event anyway; pet and vehicle are classifications of that same event
+rather than additional ones, so nothing is lost. No other map in `lib/maps/`
+multiplexes unrelated capabilities onto one characteristic either.
+
+The floodlight `Switch` (`CMD_SET_FLOODLIGHT_MANUAL_SWITCH`) is **deferred** —
+it needs a second service on the same accessory, which the current
+one-service-per-map structure does not express.
 
 **Dörrklockan** → accessory category `VIDEO_DOORBELL`, with the `Doorbell`
 service primary (`NTFY_PRESS_DOORBELL` → `ProgrammableSwitchEvent`), plus
