@@ -2,6 +2,13 @@
 
 This app is a complete rewrite of HomeyKit, allowing you to control most of your Homey devices from the Home app and Siri on your iDevices.
 
+## Eufy cameras
+
+Eufy cameras and video doorbells appear as HomeKit cameras showing a still
+image. Live video is not available, and you must create a Homey Flow per
+camera to keep the picture up to date — see
+[docs/eufy-cameras.md](docs/eufy-cameras.md).
+
 ## Pairing
 
 Open your iDevice's camera and show it this image:
