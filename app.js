@@ -298,6 +298,13 @@ module.exports = class HomeKitty extends Homey.App {
     // use the app logger for the device mapper
     DeviceMapper.setLogger(this.log.bind(this));
 
+    // Camera accessories fetch their images straight off the Web API.
+    try {
+      DeviceMapper.setImageBaseUrl(await this.#api.baseUrl);
+    } catch (e) {
+      this.error('could not determine API base url, cameras will be skipped:', e.message);
+    }
+
     // get all devices and try to map them
     for (const [ id, device ] of Object.entries(await this.getDevices())) {
       await this.addDeviceToHomeKit(device);
