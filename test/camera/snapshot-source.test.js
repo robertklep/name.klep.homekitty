@@ -107,4 +107,61 @@ describe('SnapshotSource', () => {
     const buf = await source.get();
     assert.deepStrictEqual([ ...buf ], [ 0xff, 0xd8 ]);
   });
+
+  it('rejects when the fetch times out', async () => {
+    const source = new SnapshotSource({
+      url       : 'http://homey/api/image/snp',
+      timeoutMs : 20,
+      fetchImpl : async (url, { signal }) => {
+        // Wait until abort or forever
+        await new Promise((resolve, reject) => {
+          if (signal.aborted) {
+            reject(new Error('The operation was aborted'));
+          } else {
+            signal.addEventListener('abort', () => reject(new Error('The operation was aborted')));
+          }
+        });
+        return okResponse([ 0xff, 0xd8 ]);
+      },
+    });
+    await assert.rejects(() => source.get());
+  });
+
+  it('recovers after a timeout instead of caching the error', async () => {
+    let calls = 0;
+    const source = new SnapshotSource({
+      url       : 'http://homey/api/image/snp',
+      timeoutMs : 20,
+      fetchImpl : async (url, { signal }) => {
+        calls++;
+        if (calls === 1) {
+          // First call times out
+          await new Promise((resolve, reject) => {
+            if (signal.aborted) {
+              reject(new Error('The operation was aborted'));
+            } else {
+              signal.addEventListener('abort', () => reject(new Error('The operation was aborted')));
+            }
+          });
+        }
+        return okResponse([ 0xff, 0xd8 ]);
+      },
+    });
+    await assert.rejects(() => source.get());
+    const buf = await source.get();
+    assert.deepStrictEqual([ ...buf ], [ 0xff, 0xd8 ]);
+  });
+
+  it('passes the abort signal to fetchImpl', async () => {
+    let receivedSignal = null;
+    const source = new SnapshotSource({
+      url       : 'http://homey/api/image/snp',
+      fetchImpl : async (url, options) => {
+        receivedSignal = options?.signal;
+        return okResponse([ 0xff, 0xd8 ]);
+      },
+    });
+    await source.get();
+    assert.ok(receivedSignal instanceof AbortSignal);
+  });
 });
