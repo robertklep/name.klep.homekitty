@@ -508,3 +508,49 @@ Each camera is a separate HomeKit accessory needing its own pairing. Only the
 doorbell publishes standalone so far; `lib/maps/camera-eufy.js` deliberately
 does not set `camera: true` yet, so the other four stay bridged as motion
 sensors rather than presenting camera tiles that cannot work.
+
+## CORRECTION: live RTSP is available after all (2026-08-04)
+
+An earlier section of this spec states that the Eufy app "publishes still
+images, not a continuous stream", and that its bundled `mediamtx` is dead code.
+**The first half of that is wrong**, and the conclusion drawn from it — that
+live video is out of reach — does not hold.
+
+Homey Pro has a **videos manager** (`homey.videos`), separate from the images
+manager this design was built around. Homey's Developer Tools → Videos lists
+four registered RTSP streams on this system, one per Eufy camera. They are the
+cameras' own RTSP endpoints on the LAN, of the form:
+
+```
+rtsp://<user>:<pass>@<camera-ip>/live1
+```
+
+Verified against a camera directly: port 554 open, and an RTSP `OPTIONS`
+request answered `200 OK` advertising `DESCRIBE, SETUP, PLAY, TEARDOWN`. This
+is a real, live stream, served by the camera itself — the Eufy app is not in
+the media path at all.
+
+(Credentials are per-camera and should be read at runtime from the videos
+manager, never hardcoded or committed. They are deliberately not recorded here.)
+
+### What this changes
+
+1. **Live video in HomeKit becomes achievable.** The `StreamSource` seam was
+   built for exactly this: an `RtspStreamSource` implements `prepare`/`handle`/
+   `stop` and drops in behind the existing controller. It needs ffmpeg to
+   transcode RTSP to SRTP; a Homey app can bundle its own binary, as the Eufy
+   app already does (`bin/ffmpeg-arm64`).
+2. **Snapshots get better and simpler.** A single frame can be grabbed straight
+   from RTSP on demand, which is genuinely live rather than whatever a Flow last
+   captured. That removes the whole Flow-refresh requirement, the staleness
+   problem, and the "seed each camera by hand" setup step — the weakest parts
+   of the current design.
+3. **The Eufy app stops being a dependency in the media path.** It is still
+   needed for device discovery, motion events and the doorbell press, but not
+   for pictures.
+
+### Still blocking
+
+None of this renders until the standalone accessory stops reporting "No
+Response" to iOS. That is a HAP session problem, independent of where the
+pixels come from, and remains the next thing to solve.
