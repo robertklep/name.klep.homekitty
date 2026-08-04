@@ -131,7 +131,7 @@ Four new files, plus one small change to existing upstream code.
 |---|---|
 | `lib/camera/controller.js` | Build a hap-nodejs `CameraController` for a device; own the snapshot delegate |
 | `lib/camera/snapshot-source.js` | Fetch and cache the latest JPEG for a device |
-| `lib/camera/image-watcher.js` | Watches `imageObj.lastUpdated` and refetches bytes on change |
+| `lib/camera/snapshot-source.js` | Fetches the JPEG on demand, with a 2s TTL to absorb bursts |
 | `lib/camera/stream-source.js` | Live-video interface; ships as `UnsupportedStreamSource` |
 | `lib/maps/camera-eufy.js` | Map declaring `camera: true` |
 | `lib/maps/doorbell-eufy.js` | Extended with `camera: true` |
@@ -162,36 +162,64 @@ HomeKit ──▶ CameraController.handleSnapshotRequest
 Always served from cache. Never blocks on the Eufy app, so it cannot hit
 HomeKit's snapshot timeout.
 
-### Refreshing the cache (revised after the spike)
+### Keeping the JPEG fresh (revised twice, after measurement)
 
-HomeKitty cannot run the Eufy snapshot action itself. The refresh therefore
-lives in a Homey Flow, which the user owns:
+HomeKitty cannot run the Eufy snapshot action itself, so the refresh lives in
+a Homey Flow the user owns:
 
 ```
-Homey Flow (user-created, one per camera):
-   WHEN  motion detected on <camera>
+Homey Flow (one per camera):
+   WHEN  motion detected on <camera>   (doorbell: also "doorbell pressed")
    THEN  Eufy "Take snapshot" on <camera>
-            └─▶ Eufy app writes a new JPEG, bumps image.lastUpdated
-
-HomeKitty (polling the cheap metadata, not the bytes):
-   watch device.images[].imageObj.lastUpdated
-      └─▶ changed? fetch <baseUrl>/api/image/<id>
-            └─▶ SnapshotSource cache updated
+            └─▶ Eufy app overwrites the JPEG behind /api/image/<id>
 ```
 
-This lands in the same place as the original design — a fresh picture right
-after motion — but the privileged step sits in a Flow rather than in the app.
-It also means no `SnapshotQueue` mutex is needed on our side: Homey serializes
-Flow execution, and the Eufy app's single-process constraint is its own
-problem rather than ours.
+**There is no change signal to watch.** Measured on the live Homey: after a
+snapshot the image bytes changed (hash moved within 20s), but
 
-`lastUpdated` is metadata on an object HomeKitty already holds, so watching it
-costs nothing. Bytes are fetched only when it actually moves.
+- `imageObj.lastUpdated` did **not** move — it is frozen at Eufy app start
+  time, identical across all 10 images;
+- the endpoint sends no `Last-Modified` and no `ETag`, only
+  `Cache-Control: no-cache`.
 
-The one-time setup cost is five Flows. That is a genuine downside and should
-be documented prominently in the app's settings page, because a user who
-skips it gets a camera tile frozen on whatever image happened to be current
-when they installed.
+So the originally planned `image-watcher` cannot work. It turns out not to
+matter, because fetching is cheap:
+
+```
+5 sequential fetches of a live snapshot: ~120ms each for 189KB
+```
+
+and HomeKitty runs on the Homey itself, so its fetches are loopback.
+
+**Therefore: fetch on demand.** `handleSnapshotRequest` fetches the current
+JPEG each time HomeKit asks. A 2-second TTL cache exists only to absorb the
+burst when the Home app opens and requests every camera at once — not as a
+freshness strategy. This deletes both the watcher and the snapshot queue from
+the design.
+
+The one-time setup cost is five Flows (created 2026-08-04, see below). This
+should be documented prominently in the app's settings page, because a user
+who skips it gets a camera tile frozen on whatever image was current when
+they installed.
+
+### Flows created on the live Homey (2026-08-04)
+
+| Flow | Trigger | Action |
+|---|---|---|
+| HomeKitty: snapshot Uterummet on motion | `NTFY_MOTION_DETECTION` | `action_CMD_SNAPSHOT` |
+| HomeKitty: snapshot Living Room on motion | `NTFY_MOTION_DETECTION` | `action_CMD_SNAPSHOT` |
+| HomeKitty: snapshot Trädgården on motion | `NTFY_MOTION_DETECTION` | `action_CMD_SNAPSHOT` |
+| HomeKitty: snapshot Cyckelstället on motion | `NTFY_MOTION_DETECTION` | `action_CMD_SNAPSHOT` |
+| HomeKitty: snapshot Dörrklockan on doorbell press | `NTFY_PRESS_DOORBELL` | `action_CMD_SNAPSHOT` |
+
+Card ids follow `homey:device:<deviceId>:<cardId>` and take no arguments.
+Verified end to end: running the Uterummet flow produced new image bytes
+within 20 seconds.
+
+**Deliberately not created:** a motion flow for the doorbell. It is the
+lowest battery of the five (62%) and sits on the driveway, so motion-driven
+snapshots would wake its P2P stream frequently. The press-triggered flow
+covers the moment that matters. Worth revisiting if battery holds up.
 
 ## Accessories produced
 
@@ -262,10 +290,17 @@ What remains:
 1. **Stale images if the user skips Flow setup.** Mitigated by documenting it
    in app settings, and by surfacing image age so a frozen tile is
    diagnosable rather than mysterious.
-2. **Snapshot age is invisible in HomeKit.** The Home app gives no way to say
-   "this picture is 4 days old". Worth noting: at spike time both sampled
-   images were from 2026-07-31, i.e. already 4 days stale, because no Flow
-   currently refreshes them.
+2. **Snapshot age is invisible in HomeKit**, and we cannot even measure it —
+   there is no reliable per-image timestamp (see above). A stale tile looks
+   identical to a fresh one.
+3. **Battery cost scales with motion frequency.** Every motion event on a
+   battery camera now wakes a P2P livestream. Trädgården (70%) and
+   Cyckelstället (93%) should be watched over the first week; if drain is
+   bad, add a "not in the last N minutes" condition to those Flows.
+4. **Several images share bytes.** Four of the ten Eufy images hash
+   identically — the app registers one shared "Event" image per HomeBase.
+   Map cameras via `device.images[]` and prefer the entry whose title
+   contains `Snapshot`, never by picking from the global image list.
 3. **hap-nodejs 1.1.0 is old.** Its `CameraController` is present and
    sufficient for snapshots, but if live video is added later a bump may be
    needed. Not a problem for this iteration.
