@@ -554,3 +554,59 @@ manager, never hardcoded or committed. They are deliberately not recorded here.)
 None of this renders until the standalone accessory stops reporting "No
 Response" to iOS. That is a HAP session problem, independent of where the
 pixels come from, and remains the next thing to solve.
+
+## FUNDAMENTAL CORRECTION: snapshot-only cameras are not viable (2026-08-05)
+
+This spec was built on the premise that a HomeKit camera could serve still
+images now, with live video added later behind the `StreamSource` seam. **That
+premise is wrong**, and it is the reason the feature does not work.
+
+HomeKit does not have a snapshot-only camera. When iOS opens a camera it
+negotiates an RTP session by writing `SetupEndpoints` and
+`SelectedRTPStreamConfiguration`, which reach the delegate as `prepareStream`.
+`UnsupportedStreamSource` rejects that, and iOS then treats the accessory as
+non-functional and shows it as unreachable.
+
+### Evidence
+
+With the stale pairing cleared and the accessory freshly paired, HAP-level
+instrumentation recorded iOS in full conversation with the accessory:
+
+```
+HAP read /accessories        <- read the accessory database
+HAP get-characteristics      <- read state
+HAP set-characteristics x20  <- stream negotiation
+HAP connection closed
+```
+
+and, across the entire session, **zero `request-resource` events** — iOS never
+asked for a snapshot at all. It went straight for a stream, was refused, and
+gave up. The Home app continued to show "Inget svar" throughout.
+
+### What this means for the design
+
+The snapshot machinery — `SnapshotSource`, the placeholder, the Flow-driven
+refresh, the seeding step — solved a problem HomeKit never posed. It works
+correctly (verified: real JPEGs fetched in ~27ms) but it is not what a HomeKit
+camera needs.
+
+A working implementation requires real streaming:
+
+1. An `RtspStreamSource` implementing `prepare`/`handle`/`stop` against the
+   camera's RTSP endpoint, which Homey's videos manager already exposes.
+2. A bundled ffmpeg binary to transcode RTSP to SRTP, as the Eufy app already
+   ships for its own snapshot work.
+3. SRTP session and keepalive management per stream.
+
+Snapshots then come free — a single frame pulled from the same RTSP source,
+genuinely live, with no Flows and no seeding.
+
+### Two prior findings that remain valid
+
+- **Cameras cannot be bridged.** They need their own HAP endpoint. Proven by
+  experiment and unaffected by this correction.
+- **A stale pairing strands the accessory.** If the accessory restarts while
+  the Home app removes it, it keeps advertising `sf=0`, refusing new pairings
+  and staying invisible in "Add Accessory", with no user-visible recovery.
+  `Accessory.cleanupAccessoryData(username)` clears it; a real implementation
+  needs a "reset this camera's pairing" control.
