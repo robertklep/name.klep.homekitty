@@ -469,14 +469,12 @@ describe('SnapshotOnlyDelegate', () => {
 });
 
 describe('createCameraController', () => {
-  it('builds a controller and back-links it to the delegate', () => {
+  it('builds a controller', () => {
     const controller = createCameraController({
       snapshotSource : { get : async () => PLACEHOLDER },
       placeholder    : PLACEHOLDER,
     });
     assert.ok(controller);
-    // hap-nodejs requires the delegate to expose its controller.
-    assert.strictEqual(controller.delegate.controller, controller);
   });
 });
 ```
@@ -508,9 +506,6 @@ const RESOLUTIONS = [
 ];
 
 class SnapshotOnlyDelegate {
-  // hap-nodejs reads this back off the delegate; set by createCameraController.
-  controller = null;
-
   #snapshotSource;
   #streamSource;
   #placeholder;
@@ -561,7 +556,6 @@ function createCameraController({ snapshotSource, streamSource, placeholder, log
     },
   });
 
-  delegate.controller = controller;
   return controller;
 }
 
