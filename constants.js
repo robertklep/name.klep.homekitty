@@ -16,4 +16,5 @@ module.exports = {
   SETTINGS_BRIDGE_SETUP_ID:        'Bridge.SetupID',
   SETTINGS_BRIDGE_PINCODE:         'Bridge.Pincode',
   SETTINGS_EXPOSE_MAP:             'HomeKit.Exposed',
+  SETTINGS_CAMERA_ACCESSORIES:     'HomeKit.CameraAccessories',
 };

@@ -5,6 +5,7 @@ const debounce                      = require('debounce');
 const Homey                         = require('homey');
 const Constants                     = require('./constants');
 const DeviceMapper                  = require('./lib/device-mapper');
+const { publishStandalone }         = require('./lib/camera/standalone');
 const { HomeyAPI }                  = require('./modules/homey-api');
 const {
   Bridge, Service, Characteristic,
@@ -346,7 +347,13 @@ module.exports = class HomeKitty extends Homey.App {
       if (this.#exposed.get(device.id) !== false) {
         this.log(`${ prefix } - device should be exposed`);
         try {
-          this.#bridge.addBridgedAccessory(mappedDevice.accessorize());
+          if (mappedDevice.isCamera()) {
+            // HomeKit ignores camera services on a bridged accessory, so this
+            // one gets its own HAP endpoint and its own pairing.
+            await this.publishCamera(mappedDevice, prefix);
+          } else {
+            this.#bridge.addBridgedAccessory(mappedDevice.accessorize());
+          }
         } catch(e) {
           this.log(`${ prefix } - unable to expose device: ${ e.message }`);
           this.error(e);
@@ -360,6 +367,26 @@ module.exports = class HomeKitty extends Homey.App {
     this.#exposed.set(device.id, false);
     this.log(`${ prefix } unable to map 🥺 (class=${ device.class } virtualClass=${ device.virtualClass } capabilities=${ device.capabilities })`);
     return false;
+  }
+
+  async publishCamera(mappedDevice, prefix) {
+    const device  = mappedDevice.getDevice();
+    const pincode = this.homey.settings.get(Constants.SETTINGS_BRIDGE_PINCODE) || Constants.DEFAULT_PIN_CODE;
+    const setupID = this.homey.settings.get(Constants.SETTINGS_BRIDGE_SETUP_ID) || Constants.DEFAULT_SETUP_ID;
+
+    const details = await publishStandalone({
+      accessory : mappedDevice.accessorize(),
+      deviceId  : device.id,
+      category  : mappedDevice.getCategory(),
+      pincode,
+      setupID,
+      log       : message => this.log(`${ prefix } - camera ${ message }`),
+    });
+
+    // Record it so the pairing code is discoverable without reading the logs.
+    const published = this.homey.settings.get(Constants.SETTINGS_CAMERA_ACCESSORIES) || {};
+    published[device.id] = { name : device.name, ...details };
+    this.homey.settings.set(Constants.SETTINGS_CAMERA_ACCESSORIES, published);
   }
 
   async deleteDevice(device) {

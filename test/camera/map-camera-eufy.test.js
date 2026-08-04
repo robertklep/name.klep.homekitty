@@ -28,10 +28,12 @@ describe('eufy camera map', () => {
     assert.ok(mapped, 'camera should be mappable');
   });
 
-  it('opts into the camera controller and the CAMERA category', () => {
+  it('keeps the CAMERA category but stays bridged for now', () => {
     const { Service, Characteristic, Accessory } = require('../../modules/hap-nodejs');
     const map = require('../../lib/maps/camera-eufy')(DeviceMapper, Service, Characteristic, Accessory);
-    assert.strictEqual(map.camera, true, 'map must set camera:true or no CameraController is attached');
+    // camera:true is intentionally absent for now: a camera needs its own HAP
+    // endpoint and its own pairing, and only the doorbell does that yet.
+    assert.strictEqual(map.camera, undefined, 'these cameras stay bridged for now');
     assert.strictEqual(map.category, Accessory.Categories.CAMERA);
     assert.ok('NTFY_MOTION_DETECTION' in map.required);
   });
