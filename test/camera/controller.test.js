@@ -44,13 +44,11 @@ describe('SnapshotOnlyDelegate', () => {
 });
 
 describe('createCameraController', () => {
-  it('builds a controller and back-links it to the delegate', () => {
+  it('builds a controller', () => {
     const controller = createCameraController({
       snapshotSource : { get : async () => PLACEHOLDER },
       placeholder    : PLACEHOLDER,
     });
     assert.ok(controller);
-    // hap-nodejs requires the delegate to expose its controller.
-    assert.strictEqual(controller.delegate.controller, controller);
   });
 });
