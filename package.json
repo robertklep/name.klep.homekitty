@@ -2,10 +2,14 @@
   "name": "name.klep.homekitty",
   "version": "2.5.7",
   "main": "app.js",
+  "scripts": {
+    "test": "mocha --recursive \"test/**/*.test.js\""
+  },
   "devDependencies": {
     "@tsconfig/node12": "^1.0.11",
     "@types/homey": "npm:homey-apps-sdk-v3-types@^0.3.1",
-    "@types/node": "^18.11.9"
+    "@types/node": "^18.11.9",
+    "mocha": "^10.7.3"
   },
   "dependencies": {
     "debounce": "^1.2.1",
