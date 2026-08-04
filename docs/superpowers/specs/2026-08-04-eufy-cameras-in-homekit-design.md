@@ -1,8 +1,51 @@
 # Exposing Eufy cameras to HomeKit via HomeKitty
 
 **Date:** 2026-08-04
-**Status:** Approved, pending spike result
+**Status:** Approved; spike complete, refresh mechanism revised
 **Branch:** `eufy-camera` (off `upstream/main`)
+
+## Spike results (2026-08-04)
+
+Run as a throwaway app (`com.spike.imageaccess`) with the same
+`homey:manager:api` permission HomeKitty holds, against the live Homey Pro.
+
+**Reading images works.** Confirmed end to end:
+
+```
+fetch  <baseUrl>/api/image/<id>  ->  79222 bytes, valid JPEG   (with and without bearer)
+api.call({path, json:false})     ->  string(75518)             <- corrupts binary, do not use
+```
+
+- `api.baseUrl` is an **async getter, not a method** — `await api.baseUrl`.
+  It resolved to `https://192-168-110-43.homey.homeylocal.com`.
+- `api.call()` decodes the response to a string and mangles JPEG bytes.
+  Use `fetch` against the base url instead. Auth is not required on the
+  local address, but sending the bearer (`api.__token`) also works.
+
+**Device to image mapping is direct.** `device.images` is an array of:
+
+```json
+{ "type": "camera", "id": "T8210P8123222311-Snapshot",
+  "title": "Dörrklockan - Snapshot",
+  "imageObj": { "id": "2de1e04f-…", "url": "/api/image/2de1e04f-…",
+                "lastUpdated": 1785503615889 } }
+```
+
+Each camera exposes two: `Snapshot` and `Event`. No id guessing needed, and
+`lastUpdated` gives us a free change signal.
+
+**Triggering a snapshot does NOT work.** `api.flow.runFlowCardAction()` fails
+in ~11ms with `Missing Scopes`. Adding `homey:manager:flow` to the manifest
+fails validation — `Invalid permission`. Athom deliberately withholds
+flow-execution scope from apps; the `homey:manager:api` documentation
+claiming control over "devices, Flows, etc" is misleading on this point.
+
+The snapshot action cards themselves are per-device and easy to address —
+`homey:device:<deviceId>:action_CMD_SNAPSHOT`, present for all five cameras —
+but an app may not run them.
+
+**Consequence:** the refresh half of the original design is not implementable
+inside HomeKitty. See the revised refresh section below.
 
 ## Goal
 
@@ -88,7 +131,7 @@ Four new files, plus one small change to existing upstream code.
 |---|---|
 | `lib/camera/controller.js` | Build a hap-nodejs `CameraController` for a device; own the snapshot delegate |
 | `lib/camera/snapshot-source.js` | Fetch and cache the latest JPEG for a device |
-| `lib/camera/snapshot-queue.js` | Global mutex serializing snapshot requests |
+| `lib/camera/image-watcher.js` | Watches `imageObj.lastUpdated` and refetches bytes on change |
 | `lib/camera/stream-source.js` | Live-video interface; ships as `UnsupportedStreamSource` |
 | `lib/maps/camera-eufy.js` | Map declaring `camera: true` |
 | `lib/maps/doorbell-eufy.js` | Extended with `camera: true` |
@@ -119,21 +162,36 @@ HomeKit ──▶ CameraController.handleSnapshotRequest
 Always served from cache. Never blocks on the Eufy app, so it cannot hit
 HomeKit's snapshot timeout.
 
-### Refreshing the cache (asynchronous, event-driven)
+### Refreshing the cache (revised after the spike)
+
+HomeKitty cannot run the Eufy snapshot action itself. The refresh therefore
+lives in a Homey Flow, which the user owns:
 
 ```
-CapabilityObserver: NTFY_MOTION_DETECTION | NTFY_PRESS_DOORBELL → true
-   └─▶ SnapshotQueue.enqueue(deviceId)          // global mutex
-         └─▶ runFlowCardAction('action_CMD_SNAPSHOT', { device })
-               └─▶ await image lastUpdated change
-                     └─▶ fetch bytes via ManagerImages
-                           └─▶ SnapshotSource cache updated
+Homey Flow (user-created, one per camera):
+   WHEN  motion detected on <camera>
+   THEN  Eufy "Take snapshot" on <camera>
+            └─▶ Eufy app writes a new JPEG, bumps image.lastUpdated
+
+HomeKitty (polling the cheap metadata, not the bytes):
+   watch device.images[].imageObj.lastUpdated
+      └─▶ changed? fetch <baseUrl>/api/image/<id>
+            └─▶ SnapshotSource cache updated
 ```
 
-Refreshing on motion rather than on request means the image is current
-exactly when it matters, at zero idle battery cost. The queue is a
-correctness requirement, not an optimisation — see the serialization
-constraint above.
+This lands in the same place as the original design — a fresh picture right
+after motion — but the privileged step sits in a Flow rather than in the app.
+It also means no `SnapshotQueue` mutex is needed on our side: Homey serializes
+Flow execution, and the Eufy app's single-process constraint is its own
+problem rather than ours.
+
+`lastUpdated` is metadata on an object HomeKitty already holds, so watching it
+costs nothing. Bytes are fetched only when it actually moves.
+
+The one-time setup cost is five Flows. That is a genuine downside and should
+be documented prominently in the app's settings page, because a user who
+skips it gets a camera tile frozen on whatever image happened to be current
+when they installed.
 
 ## Accessories produced
 
@@ -194,25 +252,20 @@ this door open is one interface and one null implementation.
   five accessories appear with images, and that a doorbell press produces an
   iOS notification.
 
-## Open risk
+## Remaining risks
 
-**Can HomeKitty, holding only the `homey:manager:api` permission, read image
-bytes owned by another app?**
+The original open risk (can we read another app's image bytes?) is **closed —
+yes**, see the spike results above.
 
-Confirmed so far: `GET /image` lists the Eufy images with
-`ownerUri: homey:app:com.eufylife.security` and a `url` of
-`/api/image/<id>`, so they are enumerable cross-app. Not yet confirmed: that
-fetching those bytes from inside HomeKitty succeeds, and how to map an image
-id to its owning device.
+What remains:
 
-Everything else in this design depends on that answer, so the first
-implementation step is a spike that runs HomeKitty on the Homey via
-`homey app run` and fetches one JPEG from Dörrklockan.
-
-Fallbacks if the spike fails:
-
-1. Use the Eufy app's `action_CMD_SNAPSHOT_CUSTOM` ("use self-hosted
-   service") to push snapshots to an endpoint HomeKitty serves.
-2. Patch a fork of `com.eufylife.security` to expose snapshots in a way
-   HomeKitty can consume — and, while there, wire up the dormant mediamtx,
-   which would also unlock live video.
+1. **Stale images if the user skips Flow setup.** Mitigated by documenting it
+   in app settings, and by surfacing image age so a frozen tile is
+   diagnosable rather than mysterious.
+2. **Snapshot age is invisible in HomeKit.** The Home app gives no way to say
+   "this picture is 4 days old". Worth noting: at spike time both sampled
+   images were from 2026-07-31, i.e. already 4 days stale, because no Flow
+   currently refreshes them.
+3. **hap-nodejs 1.1.0 is old.** Its `CameraController` is present and
+   sufficient for snapshots, but if live video is added later a bump may be
+   needed. Not a problem for this iteration.
