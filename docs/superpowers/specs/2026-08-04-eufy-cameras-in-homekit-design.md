@@ -31,8 +31,11 @@ api.call({path, json:false})     ->  string(75518)             <- corrupts binar
                 "lastUpdated": 1785503615889 } }
 ```
 
-Each camera exposes two: `Snapshot` and `Event`. No id guessing needed, and
-`lastUpdated` gives us a free change signal.
+Each camera exposes two: `Snapshot` and `Event`. No id guessing needed.
+
+(An earlier draft assumed `lastUpdated` gave a free change signal. Later
+measurement disproved that — see "Keeping the JPEG fresh" below. It never
+moves.)
 
 **Triggering a snapshot does NOT work.** `api.flow.runFlowCardAction()` fails
 in ~11ms with `Missing Scopes`. Adding `homey:manager:flow` to the manifest
@@ -89,8 +92,9 @@ Two constraints follow from this code, and both drive the design:
 - `lib/mapped-device.js` already calls `accessory.configureController()` for
   Adaptive Lighting, gated on a `map.adaptiveLighting` flag. A camera is the
   same shape, which gives us a hook that fits the existing architecture.
-- The bundled `homey-api` exposes `runFlowCardAction` and a `ManagerImages`,
-  which is what we need to trigger and then read a snapshot.
+- The bundled `homey-api` exposes `ManagerImages`, which is how we read a
+  snapshot. It also exposes `runFlowCardAction`, but calling it fails with
+  `Missing Scopes` — see the spike results above.
 
 ### Target devices
 
@@ -130,8 +134,8 @@ Four new files, plus one small change to existing upstream code.
 | File | Responsibility |
 |---|---|
 | `lib/camera/controller.js` | Build a hap-nodejs `CameraController` for a device; own the snapshot delegate |
-| `lib/camera/snapshot-source.js` | Fetch and cache the latest JPEG for a device |
 | `lib/camera/snapshot-source.js` | Fetches the JPEG on demand, with a 2s TTL to absorb bursts |
+| `lib/camera/placeholder.js` | Loads the fallback JPEG once, from a `__dirname`-relative path |
 | `lib/camera/stream-source.js` | Live-video interface; ships as `UnsupportedStreamSource` |
 | `lib/maps/camera-eufy.js` | Map declaring `camera: true` |
 | `lib/maps/doorbell-eufy.js` | Extended with `camera: true` |
@@ -155,12 +159,18 @@ rather than maintaining a permanent fork.
 
 ```
 HomeKit ──▶ CameraController.handleSnapshotRequest
-              └─▶ SnapshotSource.get(deviceId)
-                    └─▶ cached Buffer ──▶ HomeKit
+              └─▶ SnapshotSource.get()
+                    └─▶ GET <baseUrl>/api/image/<id>   (~120ms, loopback)
+                          └─▶ Buffer ──▶ HomeKit
 ```
 
-Always served from cache. Never blocks on the Eufy app, so it cannot hit
-HomeKit's snapshot timeout.
+Fetched on demand, not served from a long-lived cache — the 2s TTL exists only
+to absorb the burst when the Home app opens every camera at once.
+
+The fetch carries a 5s abort deadline, so a stalled Homey API cannot leave the
+HomeKit callback unfired. On any failure the delegate returns the placeholder
+JPEG rather than an error: propagating an error makes HomeKit mark the whole
+accessory unresponsive, which is worse than a stale picture.
 
 ### Keeping the JPEG fresh (revised twice, after measurement)
 
