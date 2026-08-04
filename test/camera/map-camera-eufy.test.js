@@ -28,12 +28,12 @@ describe('eufy camera map', () => {
     assert.ok(mapped, 'camera should be mappable');
   });
 
-  it('keeps the CAMERA category but stays bridged for now', () => {
+  it('opts into the camera controller with the CAMERA category', () => {
     const { Service, Characteristic, Accessory } = require('../../modules/hap-nodejs');
     const map = require('../../lib/maps/camera-eufy')(DeviceMapper, Service, Characteristic, Accessory);
-    // camera:true is intentionally absent for now: a camera needs its own HAP
-    // endpoint and its own pairing, and only the doorbell does that yet.
-    assert.strictEqual(map.camera, undefined, 'these cameras stay bridged for now');
+    // These cameras have a live RTSP stream, so they become real HomeKit
+    // cameras, each published as its own HAP endpoint.
+    assert.strictEqual(map.camera, true, 'cameras must opt into the camera controller');
     assert.strictEqual(map.category, Accessory.Categories.CAMERA);
     assert.ok('NTFY_MOTION_DETECTION' in map.required);
   });

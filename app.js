@@ -6,6 +6,7 @@ const Homey                         = require('homey');
 const Constants                     = require('./constants');
 const DeviceMapper                  = require('./lib/device-mapper');
 const { publishStandalone }         = require('./lib/camera/standalone');
+const { getStreamUrl }              = require('./lib/camera/video-source');
 const { HomeyAPI }                  = require('./modules/homey-api');
 const {
   Bridge, Service, Characteristic,
@@ -299,14 +300,11 @@ module.exports = class HomeKitty extends Homey.App {
     // use the app logger for the device mapper
     DeviceMapper.setLogger(this.log.bind(this));
 
-    // Camera accessories fetch their images straight off the Web API.
-    try {
-      DeviceMapper.setImageBaseUrl(await this.#api.baseUrl);
-    } catch (e) {
-      this.error('could not determine API base url, cameras will be skipped:', e.message);
-    }
+    // Cameras stream from the RTSP url Homey's videos manager holds for them.
+    // Resolved per request rather than cached: the url carries credentials the
+    // owning app may rotate.
+    DeviceMapper.setVideoResolver(device => getStreamUrl(this.#api, device));
 
-    require('./lib/camera/_diag2').install(this.homey); // TEMPORARY
 
     // get all devices and try to map them
     for (const [ id, device ] of Object.entries(await this.getDevices())) {
@@ -380,9 +378,10 @@ module.exports = class HomeKitty extends Homey.App {
       accessory : mappedDevice.accessorize(),
       deviceId  : device.id,
       category  : mappedDevice.getCategory(),
+      resetPairing : !! this.homey.settings.get(Constants.SETTINGS_CAMERA_RESET_PAIRING),
       pincode,
       setupID,
-      log       : message => { require('./lib/camera/_diag2').record(`PUBLISHED ${ message }`); this.log(`${ prefix } - camera ${ message }`); },
+      log       : message => this.log(`${ prefix } - camera ${ message }`),
     });
 
     // Record it so the pairing code is discoverable without reading the logs.

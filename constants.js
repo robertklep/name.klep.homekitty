@@ -17,4 +17,5 @@ module.exports = {
   SETTINGS_BRIDGE_PINCODE:         'Bridge.Pincode',
   SETTINGS_EXPOSE_MAP:             'HomeKit.Exposed',
   SETTINGS_CAMERA_ACCESSORIES:     'HomeKit.CameraAccessories',
+  SETTINGS_CAMERA_RESET_PAIRING:   'HomeKit.CameraResetPairing',
 };

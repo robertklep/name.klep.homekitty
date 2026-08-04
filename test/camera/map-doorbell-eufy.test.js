@@ -23,12 +23,14 @@ describe('eufy doorbell map', () => {
     assert.ok(DeviceMapper.mapDevice(eufyDoorbell()));
   });
 
-  it('opts into the camera controller and keeps the VIDEO_DOORBELL category', () => {
+  it('stays a doorbell and keeps the VIDEO_DOORBELL category', () => {
     // VIDEO_DOORBELL is what makes iOS show a doorbell notification with a
     // picture instead of a plain alert, so it must survive the change.
     const { Service, Characteristic, Accessory } = require('../../modules/hap-nodejs');
     const map = require('../../lib/maps/doorbell-eufy')(DeviceMapper, Service, Characteristic, Accessory);
-    assert.strictEqual(map.camera, true, 'doorbell map must set camera:true');
+    // The battery doorbell registers no video, and a camera that cannot
+    // stream is reported unreachable by HomeKit -- so it stays a doorbell.
+    assert.strictEqual(map.camera, undefined, 'doorbell must not claim to be a camera');
     assert.strictEqual(map.category, Accessory.Categories.VIDEO_DOORBELL);
   });
 });
