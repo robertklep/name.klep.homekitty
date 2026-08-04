@@ -316,3 +316,40 @@ What remains:
 3. **hap-nodejs 1.1.0 is old.** Its `CameraController` is present and
    sufficient for snapshots, but if live video is added later a bump may be
    needed. Not a problem for this iteration.
+
+## Verified on hardware (2026-08-04)
+
+Run against the live Homey Pro. **Partial — the HomeKit-facing half is still
+unverified.**
+
+Confirmed working:
+
+- The app boots on the Homey with the camera code in place, no errors.
+- The video doorbell attached a HomeKit `CameraController`:
+  `camera configured (Dörrklockan  - Snapshot)`. This exercises the entire
+  chain — map flag → `attachCamera` → API base url → `findSnapshotImage` →
+  `SnapshotSource` → `createCameraController`.
+- The doorbell's own service built correctly:
+  `[NTFY_PRESS_DOORBELL] → [ProgrammableSwitchEvent]`.
+- All four cameras logged `was able to map`, so the camera map matches the
+  real devices.
+- The refresh design works end to end: running the Uterummet Flow changed the
+  published JPEG's bytes within 12 seconds.
+
+Not yet verified:
+
+- How any of it looks in the Home app. `homey app run` executes the app in a
+  Docker container on the developer's machine, so the HAP bridge never
+  advertises on the LAN — HomeKit rendering cannot be checked that way at all.
+  Use `homey app install` instead.
+- The placeholder fallback, which only fires on a real HomeKit snapshot
+  request.
+- The four cameras attaching controllers. They are set `false` in HomeKitty's
+  `HomeKit.Exposed` setting (66 of 100 devices are exposed; these four are
+  not), so `accessorize()` never runs for them. User configuration, not a
+  defect — they must be enabled in HomeKitty's settings.
+
+Operational note, learned destructively: `homey app run` uninstalls the
+installed app for the duration and relies on its own `Ctrl-C` cleanup to put
+it back. Killing the process instead leaves HomeKitty **uninstalled**, taking
+the whole HomeKit bridge offline until it is reinstalled from the App Store.
