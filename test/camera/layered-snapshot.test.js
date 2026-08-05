@@ -52,6 +52,45 @@ describe('LayeredSnapshotSource', () => {
     await assert.rejects(() => source.get(), /timed out/);
   });
 
+  it('stops hammering a source that just failed', async () => {
+    // Eufy's RTSP is down far more often than up. Retrying it every poll spawns
+    // an ffmpeg process per camera every few seconds, which is enough load on a
+    // Homey to make pictures come and go.
+    let attempts = 0;
+    let clock    = 1000;
+    const flaky  = { name : 'rtsp', get : async () => { attempts++; throw Error('404'); } };
+    const source = new LayeredSnapshotSource({
+      sources : [ flaky, ok('image', 4) ],
+      ttlMs : 0, cooldownMs : 60000, now : () => clock,
+    });
+
+    await source.get();
+    assert.strictEqual(attempts, 1);
+
+    clock = 5000;                       // a few seconds later
+    await source.get();
+    assert.strictEqual(attempts, 1, 'should still be cooling down');
+
+    clock = 70000;                      // past the cooldown
+    await source.get();
+    assert.strictEqual(attempts, 2, 'should retry once the cooldown expires');
+  });
+
+  it('clears the cooldown as soon as a source recovers', async () => {
+    let clock = 1000;
+    let up    = false;
+    const flaky = { name : 'rtsp', get : async () => { if (! up) throw Error('404'); return jpeg(5); } };
+    const source = new LayeredSnapshotSource({
+      sources : [ flaky, ok('image', 4) ], ttlMs : 0, cooldownMs : 60000, now : () => clock,
+    });
+
+    assert.strictEqual((await source.get())[2], 4, 'falls back while down');
+    up = true; clock = 70000;
+    assert.strictEqual((await source.get())[2], 5, 'uses the live source again');
+    clock = 70001;
+    assert.strictEqual((await source.get())[2], 5, 'and keeps using it, not cooling down');
+  });
+
   it('throws only when nothing has ever worked', async () => {
     const source = new LayeredSnapshotSource({ sources : [ fail('rtsp', '404'), fail('image', '500') ] });
     await assert.rejects(() => source.get(), /404.*500/s);
