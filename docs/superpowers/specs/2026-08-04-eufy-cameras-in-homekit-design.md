@@ -610,3 +610,72 @@ genuinely live, with no Flows and no seeding.
   and staying invisible in "Add Accessory", with no user-visible recovery.
   `Accessory.cleanupAccessoryData(username)` clears it; a real implementation
   needs a "reset this camera's pairing" control.
+
+## WORKING (2026-08-05)
+
+Five HomeKit accessories — four cameras and a video doorbell — all showing
+pictures. What follows corrects two conclusions recorded earlier in this
+document that turned out to be wrong.
+
+### Correction 1: HomeKit does support snapshot-only cameras
+
+An earlier section states, as a finding, that "HomeKit has no snapshot-only
+camera" and that streaming is mandatory. **That is false.** iOS was rejecting
+the accessory because `streamingOptions` omitted `audio`: hap-nodejs still
+advertises a default AAC-ELD configuration in that case while creating no
+Microphone service, so the accessory claimed audio support it could not
+honour. iOS read the database and closed the session without ever requesting
+a snapshot — which looked like "streaming is required" but was a malformed
+accessory.
+
+With audio declared, iOS requests a snapshot every ~10s and renders it
+happily. Live streaming can fail permanently and the camera still works; only
+tapping through to live view breaks.
+
+### Correction 2: the doorbell can be a camera
+
+Following from the above, this document claimed the battery doorbell "can
+never be a HomeKit camera" because it registers no video. It publishes a
+snapshot image, and that is sufficient. It is now a standalone
+`VIDEO_DOORBELL` accessory with a picture and the doorbell press.
+
+### The five bugs
+
+| Bug | Effect |
+|---|---|
+| Cameras attached to the bridge | iOS ignores camera services on a bridged accessory |
+| `-f image2` writing one frame to stdout | Silently produced zero bytes; `-f mjpeg` works |
+| `streamingOptions` without `audio` | iOS rejected the accessory — the "no response" |
+| RTSP as the only picture source | Blank whenever Eufy stopped serving the stream |
+| RTSP retried on every poll | An ffmpeg process per camera every few seconds; pictures flickered |
+
+Plus an operational trap of our own making: the pairing-reset setting was
+global, so every restart with it left on wiped all camera pairings — and
+recovering one stranded accessory meant re-pairing the rest. It now takes a
+device id.
+
+### How pictures actually arrive
+
+Sources are tried most-live first, with a 4s deadline each and a 60s cooldown
+after a failure:
+
+1. a frame from RTSP — when Eufy happens to be serving it
+2. the JPEG the Eufy app publishes to Homey — the normal case
+3. the last frame successfully obtained
+
+Eufy serves RTSP only intermittently, so in practice (2) does the work.
+Freshness comes from Homey Flows: motion for every camera, plus a timer —
+5 minutes for the mains cameras, 30 for the battery ones and the doorbell.
+
+### Still not working
+
+Live video on tap. iOS requests it (`STREAM prepare` observed) and
+`RtspStreamSource` is wired, but Eufy's RTSP is up too rarely to catch. If it
+ever becomes reliably available this should work unchanged.
+
+### Unrelated upstream bug worth reporting
+
+`lib/mapped-device.js` passed the accessory category as a third argument to
+the `Accessory` constructor, which takes `(displayName, UUID)` only. Every
+HomeKitty accessory has therefore been category `1` (Other) for every user.
+Harmless while bridged; fatal for a standalone camera.
