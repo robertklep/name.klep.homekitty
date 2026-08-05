@@ -305,6 +305,13 @@ module.exports = class HomeKitty extends Homey.App {
     // owning app may rotate.
     DeviceMapper.setVideoResolver(device => getStreamUrl(this.#api, device));
 
+    // Fallback picture source: the JPEG the Eufy app publishes per camera.
+    try {
+      DeviceMapper.setImageBaseUrl(await this.#api.baseUrl);
+    } catch (e) {
+      this.error('could not determine API base url, image fallback disabled:', e.message);
+    }
+
 
     // get all devices and try to map them
     for (const [ id, device ] of Object.entries(await this.getDevices())) {
