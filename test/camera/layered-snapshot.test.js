@@ -35,6 +35,23 @@ describe('LayeredSnapshotSource', () => {
     assert.strictEqual((await source.get())[2], 7, 'should still serve the remembered frame');
   });
 
+  it('gives up on a hanging source and falls through', async () => {
+    // Resolving ffmpeg can download ~25MB on first use. Without a deadline that
+    // blocks the whole chain past HomeKit's patience, and iOS reports the
+    // camera as unresponsive rather than slow.
+    const hangs = { name : 'rtsp', get : () => new Promise(() => {}) };
+    const source = new LayeredSnapshotSource({
+      sources : [ hangs, ok('image', 9) ], deadlineMs : 40, ttlMs : 0,
+    });
+    assert.strictEqual((await source.get())[2], 9);
+  });
+
+  it('does not hang forever when every source hangs', async () => {
+    const hangs = { name : 'rtsp', get : () => new Promise(() => {}) };
+    const source = new LayeredSnapshotSource({ sources : [ hangs ], deadlineMs : 40, ttlMs : 0 });
+    await assert.rejects(() => source.get(), /timed out/);
+  });
+
   it('throws only when nothing has ever worked', async () => {
     const source = new LayeredSnapshotSource({ sources : [ fail('rtsp', '404'), fail('image', '500') ] });
     await assert.rejects(() => source.get(), /404.*500/s);
