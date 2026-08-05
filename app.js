@@ -376,6 +376,17 @@ module.exports = class HomeKitty extends Homey.App {
     return false;
   }
 
+  // The reset setting is either `true`/`1` for every camera, or a comma
+  // separated list of device ids. Targeting one camera matters: a blanket
+  // reset re-pairs the working ones too, which is a lot of manual work in the
+  // Home app to fix a single stranded accessory.
+  shouldResetPairing(deviceId) {
+    const value = this.homey.settings.get(Constants.SETTINGS_CAMERA_RESET_PAIRING);
+    if (! value) return false;
+    if (value === true || value === 1 || value === '1' || value === 'true') return true;
+    return String(value).split(',').map(id => id.trim()).includes(deviceId);
+  }
+
   async publishCamera(mappedDevice, prefix) {
     const device  = mappedDevice.getDevice();
     const pincode = this.homey.settings.get(Constants.SETTINGS_BRIDGE_PINCODE) || Constants.DEFAULT_PIN_CODE;
@@ -385,7 +396,7 @@ module.exports = class HomeKitty extends Homey.App {
       accessory : mappedDevice.accessorize(),
       deviceId  : device.id,
       category  : mappedDevice.getCategory(),
-      resetPairing : !! this.homey.settings.get(Constants.SETTINGS_CAMERA_RESET_PAIRING),
+      resetPairing : this.shouldResetPairing(device.id),
       pincode,
       setupID,
       log       : message => this.log(`${ prefix } - camera ${ message }`),
