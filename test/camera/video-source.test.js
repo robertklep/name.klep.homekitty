@@ -105,3 +105,14 @@ describe('getStreamUrl re-reading a stale device', () => {
     assert.strictEqual(await getStreamUrl(api, { id : 'dev1', videos : [] }), null);
   });
 });
+
+describe('getStreamUrl when the owning app is unavailable', () => {
+  it('returns null rather than rejecting when the video url cannot be fetched', async () => {
+    // Reinstalling the camera app makes this call fail. An unhandled rejection
+    // here takes the whole bridge down, which is what was happening whenever
+    // the Eufy app was updated.
+    const device = { id : 'dev1', videos : [ { type : 'camera', videoObj : { id : 'v1' } } ] };
+    const api = { videos : { getVideoUrl : async () => { throw Error('app is restarting'); } } };
+    assert.strictEqual(await getStreamUrl(api, device), null);
+  });
+});
