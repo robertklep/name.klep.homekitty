@@ -69,3 +69,39 @@ describe('redact', () => {
     assert.strictEqual(redact('rtsp://192.168.110.174/live1'), 'rtsp://192.168.110.174/live1');
   });
 });
+
+describe('getStreamUrl re-reading a stale device', () => {
+  const videos = [ { type : 'camera', id : 'main', videoObj : { id : 'v1', type : 'rtsp' } } ];
+
+  it('looks the device up again when its snapshot has no videos', async () => {
+    // HomeKitty maps devices at startup; the Eufy app registers its videos when
+    // it starts. Whichever boots second wins, and the loser holds a device that
+    // will never show a stream.
+    const stale = { id : 'dev1', videos : [] };
+    const api   = {
+      devices : { getDevice : async ({ id }) => ({ id, videos }) },
+      videos  : { getVideoUrl : async ({ id }) => ({ url : `rtsp://host/${ id }` }) },
+    };
+    assert.strictEqual(await getStreamUrl(api, stale), 'rtsp://host/v1');
+  });
+
+  it('remembers the stream it found, rather than looking it up every time', async () => {
+    let lookups = 0;
+    const stale = { id : 'dev1', videos : [] };
+    const api   = {
+      devices : { getDevice : async ({ id }) => (lookups++, { id, videos }) },
+      videos  : { getVideoUrl : async () => ({ url : 'rtsp://host/v1' }) },
+    };
+    await getStreamUrl(api, stale);
+    await getStreamUrl(api, stale);
+    assert.strictEqual(lookups, 1);
+  });
+
+  it('returns null when the device really has no stream', async () => {
+    const api = {
+      devices : { getDevice : async () => ({ id : 'dev1', videos : [] }) },
+      videos  : { getVideoUrl : async () => { throw Error('should not be asked'); } },
+    };
+    assert.strictEqual(await getStreamUrl(api, { id : 'dev1', videos : [] }), null);
+  });
+});

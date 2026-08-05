@@ -313,6 +313,8 @@ module.exports = class HomeKitty extends Homey.App {
     }
 
 
+    require('./lib/camera/_diag').install(this.homey); // TEMPORARY
+
     // get all devices and try to map them
     for (const [ id, device ] of Object.entries(await this.getDevices())) {
       await this.addDeviceToHomeKit(device);
