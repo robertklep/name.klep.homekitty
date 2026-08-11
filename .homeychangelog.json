@@ -193,5 +193,8 @@
   },
   "2.5.7": {
     "en": "Added support for occupancy sensors"
+  },
+  "2.5.8": {
+    "en": "Support thermostats with operational_state"
   }
 }
